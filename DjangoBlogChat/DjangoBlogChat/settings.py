@@ -181,3 +181,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
 ]
+
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'blog_user.views.custom_exception_handler',
+
+}

@@ -1,5 +1,6 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.http import JsonResponse
 
 from django.contrib.auth import authenticate
 
@@ -33,7 +34,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         if BlogUser.objects.filter(nickname=value).exists():
 
-            raise serializers.ValidationError('User with this nickname already exists')
+            raise serializers.ValidationError({"nickname": "User with this nickname already exists"})
 
         return value
 
@@ -43,7 +44,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         if BlogUser.objects.filter(email=value).exists():
 
-            raise serializers.ValidationError('User with this email already exists')
+            raise serializers.ValidationError("User with this email already exists")
 
         return value
 
@@ -53,19 +54,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         if len(value) < 8:
 
-            raise serializers.ValidationError('Password must be at least 8 characters long.')
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
 
         has_digit = any(char.isdigit() for char in value)
 
         if not has_digit:
 
-            raise serializers.ValidationError('Password must contain at least one digit.')
+            raise serializers.ValidationError("Password must contain at least one digit.")
 
         has_special_char = any(not char.isalnum() for char in value)
 
         if not has_special_char:
 
-            raise serializers.ValidationError('Password must contain at least one special character.')
+            raise serializers.ValidationError("Password must contain at least one special character.")
 
         return value
 
@@ -73,7 +74,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         if attrs['password'] != attrs['confirm_password']:
 
-            raise serializers.ValidationError("Passwords must match.")
+            raise serializers.ValidationError({"confirm_password": "Passwords must match."})
+        
 
         return attrs
 
@@ -94,34 +96,39 @@ class AuthorizationSerializer(serializers.Serializer):
 
     """Serializer for user's login request"""
 
-    nickname_or_email = serializers.CharField()
+    nickname = serializers.CharField()
     password = serializers.CharField()
 
     def validate(self, attrs):
-        
-        nickname_or_email = attrs.get('nickname_or_email')
+
+        nickname = attrs.get('nickname')
         password = attrs.get('password')
 
-        if nickname_or_email is None or password is None:
-            raise serializers.ValidationError('Both fields are required.')
+        if nickname is None or password is None:
+            raise serializers.ValidationError({
+                                        "errors": {
+                                            "nickname": "Field are required.",
+                                            "password": "Field are required."
+                                            }
+                                        })
 
-        user = authenticate(username=nickname_or_email, password=password)
+        user = authenticate(username=nickname, password=password)
 
         if user is None:
 
             try:
 
-                user = BlogUser.objects.get(email=nickname_or_email)
+                user = BlogUser.objects.get(email=nickname)
 
             except BlogUser.DoesNotExist:
 
                 try:
 
-                    user = BlogUser.objects.get(nickname=nickname_or_email)
+                    user = BlogUser.objects.get(nickname=nickname)
 
                 except BlogUser.DoesNotExist:
 
-                    raise serializers.ValidationError({'nickname_or_email': 'User does not exist.'})
+                    raise serializers.ValidationError({"nickname": "User does not exist."})
 
             if not user.check_password(password):
 
