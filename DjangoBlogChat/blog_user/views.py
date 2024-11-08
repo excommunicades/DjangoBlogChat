@@ -18,40 +18,6 @@ from blog_user.serializers import (
 from blog_user.models import BlogUser
 
 
-def custom_exception_handler(exc, context):
-
-    response = exception_handler(exc, context)
-
-    if response is not None and isinstance(exc, ValidationError):
-
-        for field, messages in response.data.items():
-            if isinstance(messages, list):
-                response.data[field] = ' '.join(messages)
-
-        response.data = {"errors": response.data}
-
-    if isinstance(exc, ValidationError):
-        print(response.data)
-        errors = response.data.get('errors')
-        print(errors)
-        if errors.get('email') == "User with this email already exists":
-
-            response = Response(response.data,
-                status=status.HTTP_409_CONFLICT
-            )
-
-            return response
-
-        if errors.get('nickname') == "User with this nickname already exists":
-
-            response = Response(response.data,
-                status=status.HTTP_409_CONFLICT
-            )
-
-            return response
-
-        return response
-
 class Register_User(generics.CreateAPIView):
 
     """Endpoint for user registration"""
@@ -60,46 +26,32 @@ class Register_User(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
 
-        """Check validation of form, create user"""
-
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
+
             errors = serializer.errors
-            print(errors)
 
-            if errors.get("password"):
-                data = {"password": errors["password"][0]}
-                return Response({"errors": data}, status=status.HTTP_400_BAD_REQUEST)
+            formatted_errors = {}
 
-            if errors.get("nickname"):
-                error = 'error'
-                if errors['nickname'][0] == 'blog user with this nickname already exists.':
-                    error = 'User with this nickname already exists'
-                data = {"nickname": error}
-                return Response({"errors": data}, status=status.HTTP_409_CONFLICT)
+            for field, error_list in errors.items():
 
-            if errors.get("email"):
-                error = 'error'
-                if errors['email'][0] == 'blog user with this email already exists.':
-                    error = 'User with this email with this email already exists'
-                if errors['email'][0] == 'This field is required.':
-                    error = 'This field is required.'
-                data = {"email": error}
-                return Response({"errors": data}, status=status.HTTP_409_CONFLICT)
+                for i, e in enumerate(error_list):
+                    match e:
+                        case 'blog user with this nickname already exists.':
 
-            if errors.get("username"):
-                error = 'error'
-                if errors['username'][0] == 'This field is required.':
-                    error = 'This field is required.'
-                data = {"username": error}
-                return Response({"errors": data}, status=status.HTTP_409_CONFLICT)
+                            error_list[i] = 'User with this nickname already exists.'
 
-            if errors.get("confirm_password"):
-                data = {"confirm_password": errors["confirm_password"][0]}
-                return Response({"errors": data}, status=status.HTTP_409_CONFLICT)
+                        case 'blog user with this email already exists.':
 
-            return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+                            error_list[i] = 'User with this email already exists.'
+
+                formatted_errors[field] = " ".join(error_list)
+
+            return Response(
+                {"errors": formatted_errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         self.perform_create(serializer)
 
@@ -117,26 +69,29 @@ class Login_User(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
+
             errors = serializer.errors
-            print(errors)
-            if errors.get('nickname'):
 
-                nickname_error = str(errors['nickname'][0])
-                print(nickname_error)
-                if nickname_error == 'User does not exist.':
-                    return Response({'errors': {'nickname': 'User does not exist.'}}, status=status.HTTP_404_NOT_FOUND)
-                if nickname_error == 'This field is required.':
-                    return Response({'errors': {'nickname': 'This field is required.'}}, status=status.HTTP_404_NOT_FOUND)
+            nickname_error = errors.get('nickname', [])
 
-            if errors.get('password'):
+            if nickname_error:
 
-                password_error = str(errors['password'][0])
-                if password_error == 'Wrong password.':
-                    return Response({'errors': {'password': 'Wrong password.'}}, status=status.HTTP_401_UNAUTHORIZED)
+                nickname_error_msg = str(nickname_error[0])
+
+                if nickname_error_msg in ['User does not exist.', 'This field is required.']:
+
+                    return Response({'errors': {'nickname': nickname_error_msg}}, status=status.HTTP_404_NOT_FOUND)
+
+            password_error = errors.get('password', [])
+
+            if password_error and str(password_error[0]) == 'Wrong password.':
+
+                return Response({'errors': {'password': 'Wrong password.'}}, status=status.HTTP_401_UNAUTHORIZED)
 
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
         user = serializer.validated_data['user']
+
         refresh = RefreshToken.for_user(user)
 
         user_data = BlogUser.objects.get(nickname=str(user))

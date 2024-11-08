@@ -181,8 +181,9 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
 ]
+CORS_ALLOW_CREDENTIALS = True
 
-REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'blog_user.views.custom_exception_handler',
+# REST_FRAMEWORK = {
+#     'EXCEPTION_HANDLER': 'blog_user.views.custom_exception_handler',
 
-}
+# }
