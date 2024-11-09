@@ -32,7 +32,7 @@ class Register_User(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
 
         serializer = self.get_serializer(data=request.data)
-        
+
         if serializer.is_valid():
 
             user_data = serializer.validated_data
@@ -45,7 +45,7 @@ class Register_User(generics.CreateAPIView):
 
             send_mail(
                 'Registration code',
-                f"Here is the code for registration: {code}",
+                f"Here is the code for registration: {code} and here is the link for this action: http://localhost:4200/confirm",
                 'blog@gmail.com',
                 [f'{user_data.get('email')}']
             )
@@ -59,7 +59,9 @@ class Register_User(generics.CreateAPIView):
             for field, error_list in errors.items():
 
                 for i, e in enumerate(error_list):
+
                     match e:
+
                         case 'blog user with this nickname already exists.':
 
                             error_list[i] = 'User with this nickname already exists.'
@@ -89,13 +91,13 @@ class Register_Confirm(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            
+
             code = serializer.data.get('code')
-            
+
             user_data = cache.get(code)
 
             if user_data:
-                
+
                 user = BlogUser.objects.create_user(
                         nickname=user_data['nickname'],
                         username=user_data['username'],
@@ -108,9 +110,9 @@ class Register_Confirm(generics.GenericAPIView):
                 return Response({"message": "Registration successfully."}, status=status.HTTP_200_OK)
 
             else:
-                
-                return Response({"errors": {"message": "Invalid User."}})
-    
+
+                return Response({"errors": {"message": "Wrong code."}})
+
         return Response({"errors": {"code:": str(serializer.errors.get('code')[0])}}, status=status.HTTP_400_BAD_REQUEST)
 
 class Login_User(generics.GenericAPIView):
@@ -118,9 +120,11 @@ class Login_User(generics.GenericAPIView):
     """Endpoint for user authentication"""
 
     serializer_class = AuthorizationSerializer
+
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
+
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():

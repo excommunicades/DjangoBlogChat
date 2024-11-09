@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers, status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.http import JsonResponse
@@ -34,6 +36,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         """checks email for uniqueness in db"""
 
+        email_pattern = r'^[a-zA-Z0-9.%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'
+
+        if not re.match(email_pattern, value):
+
+            raise serializers.ValidationError("Invalid email format.")
+
         if BlogUser.objects.filter(email=value).exists():
 
             raise serializers.ValidationError("User with this email already exists.")
@@ -44,17 +52,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         """Validates the password strength"""
 
-        if len(value) < 8:
+        pattern = r'^(?=.*[!@#$%^&()+}{":;\'?/>.<,`~])(?=.*\d)[^\s]{8,}$'
 
-            raise serializers.ValidationError("Password must be at least 8 characters long.")
-
-        if not any(char.isdigit() for char in value):
-
-            raise serializers.ValidationError("Password must contain at least one digit.")
-
-        if not any(not char.isalnum() for char in value):
-
-            raise serializers.ValidationError("Password must contain at least one special character.")
+        if not re.match(pattern, value):
+            raise serializers.ValidationError(
+                "Password must be at least 8 characters long, contain at least one digit, "
+                "contain at least one special character, and not have any spaces."
+            )
 
         return value
 
