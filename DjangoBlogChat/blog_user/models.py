@@ -55,7 +55,8 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
 
     # age = models.SmallIntegerField()
     # date_of_birth = models.DateField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+
+    is_actived = models.BooleanField(default=True)
 
     is_authenticated = models.BooleanField(default=False)
 
