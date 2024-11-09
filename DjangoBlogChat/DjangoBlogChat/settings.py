@@ -178,6 +178,9 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+FRONTEND_URL = "http://localhost:4200"
+BACKEND_URL = "http://localhost:8000"
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
 ]
@@ -187,3 +190,15 @@ CORS_ALLOW_CREDENTIALS = True
 #     'EXCEPTION_HANDLER': 'blog_user.views.custom_exception_handler',
 
 # }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/2',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -83,6 +83,21 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class RegistrationConfirmSerializer(serializers.Serializer):
+
+    """Serializer for code' request"""
+
+    code = serializers.IntegerField()
+
+    def validate_code(self, value):
+
+        if value < 100000 or value > 999999:
+
+            raise serializers.ValidationError("Invalid Code.")
+
+        return value
+
+
 class AuthorizationSerializer(serializers.Serializer):
 
     """Serializer for user's login request"""
