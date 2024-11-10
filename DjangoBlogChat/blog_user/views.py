@@ -46,7 +46,7 @@ class Register_User(generics.CreateAPIView):
             send_mail(
                 'Registration code',
                 f"Here is the code for registration: {code} and here is the link for this action: http://localhost:4200/confirm",
-                'blog@gmail.com',
+                'plextaskmanager@gmail.com',
                 [f'{user_data.get('email')}']
             )
 
