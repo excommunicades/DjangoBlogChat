@@ -98,6 +98,14 @@ class Register_Confirm(generics.GenericAPIView):
 
             if user_data:
 
+                if BlogUser.objects.filter(email=user_data['email']).exists():
+                    return Response({"errors": {"message": "Email is already taken."}},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                if BlogUser.objects.filter(nickname=user_data['nickname']).exists():
+                    return Response({"errors": {"message": "Nickname is already taken."}},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
                 user = BlogUser.objects.create_user(
                         nickname=user_data['nickname'],
                         username=user_data['username'],
