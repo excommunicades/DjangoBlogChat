@@ -150,3 +150,65 @@ class AuthorizationSerializer(serializers.Serializer):
         attrs['user'] = user
 
         return attrs
+
+
+class RequestPasswordRecoverySerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+
+    """Serializer for user's registration"""
+
+    def validate_email(self, value):
+
+        try:
+
+            user = BlogUser.objects.get(email=value)
+
+        except BlogUser.DoesNotExist:
+
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        return value
+
+
+class PasswordRecoverySerializer(serializers.Serializer):
+
+    code = serializers.IntegerField()
+
+    password = serializers.CharField(write_only=True)
+
+    confirm_password = serializers.CharField(write_only=True)
+
+    """Serializer for user's registration"""
+
+    def validate_password(self, value):
+
+        """Validates the password strength"""
+
+        pattern = r'^(?=.*[!@#$%^&()+}{":;\'?/>.<,`~])(?=.*\d)[^\s]{8,}$'
+
+        if not re.match(pattern, value):
+            raise serializers.ValidationError(
+                "Password must be at least 8 characters long, contain at least one digit, "
+                "contain at least one special character, and not have any spaces."
+            )
+
+        return value
+
+    def validate_code(self, value):
+
+        if value < 100000 or value > 999999:
+
+            raise serializers.ValidationError("Invalid Code.")
+
+        return value
+
+    def validate(self, attrs):
+
+        """Check if passwords match"""
+
+        if attrs['password'] != attrs['confirm_password']:
+
+            raise serializers.ValidationError({"confirm_password": "Passwords must match."})
+
+        return attrs

@@ -17,7 +17,9 @@ from django.core.mail import send_mail
 from blog_user.serializers import (
     RegistrationSerializer,
     AuthorizationSerializer,
-    RegistrationConfirmSerializer
+    RegistrationConfirmSerializer,
+    RequestPasswordRecoverySerializer,
+    PasswordRecoverySerializer
     )
 
 from blog_user.models import BlogUser
@@ -119,7 +121,7 @@ class Register_Confirm(generics.GenericAPIView):
 
             else:
 
-                return Response({"errors": {"message": "Wrong code."}})
+                return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"errors": {"code:": str(serializer.errors.get('code')[0])}}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -173,3 +175,91 @@ class Login_User(generics.GenericAPIView):
                 "email": user_data.email
             }
         })
+
+
+class Request_Password_Recovery(generics.GenericAPIView):
+
+    """Endpoint for code confirm"""
+
+    serializer_class = RequestPasswordRecoverySerializer
+
+    def post(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+        
+            user_data = serializer.validated_data
+
+            print(user_data)
+
+            recovery_code = random.randint(100000,999999)
+
+            cache.set(recovery_code, user_data, timeout=180)
+
+            request.session['user_data'] = user_data
+
+            send_mail(
+                'Registration code',
+                f"Here is the code for password recovery: {recovery_code} and here is the link for this action: http://localhost:4200/recovery",
+                'plextaskmanager@gmail.com',
+                [f'{user_data.get('email')}']
+            )
+
+            return Response({"message": "We sent to you password recovery code."}, status=status.HTTP_200_OK)
+
+        errors = serializer.errors
+
+        formatted_errors = {}
+
+        for field, error in errors.items():
+            formatted_errors[field] = error[0]
+
+        print(formatted_errors)
+
+        return Response({"errors": formatted_errors}, status=400)
+
+
+class Password_Recovery(generics.GenericAPIView):
+
+    """Endpoint for code confirm"""
+
+    serializer_class = PasswordRecoverySerializer
+
+    def post(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+
+            recovery_code = serializer.data.get('code')
+
+            password = serializer.data.get('password')
+
+            user_data = cache.get(recovery_code)
+
+            if user_data:
+
+                try:
+
+                    user = BlogUser.objects.get(email=user_data['email'])
+
+                except BlogUser.DoesNotExist:
+
+                    return Response({"errors": {"message": "User with this email does not exist."}},
+                                    status=status.HTTP_404_NOT_FOUND)
+
+                user.set_password(password)
+
+                user.save()
+
+                cache.delete(recovery_code)
+
+                return Response({"message": "Password successfully changed."}, status=status.HTTP_200_OK)
+
+            else:
+
+                return Response({"errors": {"message": "Invalid code."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
