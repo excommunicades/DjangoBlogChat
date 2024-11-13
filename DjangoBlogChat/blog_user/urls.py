@@ -10,7 +10,7 @@ from blog_user.views import (
     Login_User,
     Register_Confirm,
     Request_Password_Recovery,
-    Password_Recovery
+    Password_Recovery,
 )
 
 urlpatterns = [

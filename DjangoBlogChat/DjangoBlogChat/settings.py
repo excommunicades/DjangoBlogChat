@@ -55,6 +55,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+
+    'blog_user.middleware.ErrorHandlingMiddleware'
 ]
 
 ROOT_URLCONF = 'DjangoBlogChat.urls'
@@ -76,8 +78,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'DjangoBlogChat.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 

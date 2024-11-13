@@ -175,9 +175,9 @@ class PasswordRecoverySerializer(serializers.Serializer):
 
     code = serializers.IntegerField()
 
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField()
 
-    confirm_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField()
 
     """Serializer for user's registration"""
 

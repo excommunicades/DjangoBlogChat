@@ -123,7 +123,6 @@ class Register_Confirm(generics.GenericAPIView):
 
                 return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"errors": {"code:": str(serializer.errors.get('code')[0])}}, status=status.HTTP_400_BAD_REQUEST)
 
 class Login_User(generics.GenericAPIView):
 
@@ -235,7 +234,7 @@ class Password_Recovery(generics.GenericAPIView):
             recovery_code = serializer.data.get('code')
 
             password = serializer.data.get('password')
-
+            print(password)
             user_data = cache.get(recovery_code)
 
             if user_data:
@@ -248,7 +247,7 @@ class Password_Recovery(generics.GenericAPIView):
 
                     return Response({"errors": {"message": "User with this email does not exist."}},
                                     status=status.HTTP_404_NOT_FOUND)
-
+                print(user)
                 user.set_password(password)
 
                 user.save()
@@ -262,4 +261,22 @@ class Password_Recovery(generics.GenericAPIView):
                 return Response({"errors": {"message": "Invalid code."}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+# {
+#     "email": "daniilworkmail49@gmail.com"
+# }
+
+# {
+#     "code": 308589,
+#     "password": "password1%",
+#     "confirm_password": "password1%"
+# }
+
+{
+    "username": "test_user",
+    "nickname": "testy_name1535235",
+    "email": "gmail151251253523512412412@gmail.com",
+    "password": "password1%",
+    "confirm_password": "password1%"
+}
