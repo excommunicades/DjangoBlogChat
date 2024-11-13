@@ -261,22 +261,3 @@ class Password_Recovery(generics.GenericAPIView):
                 return Response({"errors": {"message": "Invalid code."}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# {
-#     "email": "daniilworkmail49@gmail.com"
-# }
-
-# {
-#     "code": 308589,
-#     "password": "password1%",
-#     "confirm_password": "password1%"
-# }
-
-{
-    "username": "test_user",
-    "nickname": "testy_name1535235",
-    "email": "gmail151251253523512412412@gmail.com",
-    "password": "password1%",
-    "confirm_password": "password1%"
-}
