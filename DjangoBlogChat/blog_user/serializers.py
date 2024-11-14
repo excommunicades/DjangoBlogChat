@@ -130,9 +130,9 @@ class AuthorizationSerializer(serializers.Serializer):
         if user is None:
 
             try:
-
+                # print(nickname)
                 user = BlogUser.objects.get(email=nickname)
-
+                # print(user.email)
             except BlogUser.DoesNotExist:
 
                 try:

@@ -22,6 +22,13 @@ from blog_user.serializers import (
     PasswordRecoverySerializer
     )
 
+from blog_user.utils import (
+    RegisterUser,
+    RegistrationConfirmationService,
+    AuthenticationService,
+    RequestPasswordRecoveryService,
+    PasswordRecoveryService
+)
 from blog_user.models import BlogUser
 
 
@@ -39,47 +46,37 @@ class Register_User(generics.CreateAPIView):
 
             user_data = serializer.validated_data
 
-            code = random.randint(100000,999999)
+            registration_service = RegisterUser(user_data)
 
-            cache.set(code, user_data, timeout=180)
+            code = registration_service.execute()
 
-            request.session['user_data'] = user_data
+            return Response({"message": "Please check your email for confirmation with code"}, status=status.HTTP_200_OK)
 
-            send_mail(
-                'Registration code',
-                f"Here is the code for registration: {code} and here is the link for this action: http://localhost:4200/confirm",
-                'plextaskmanager@gmail.com',
-                [f'{user_data.get('email')}']
-            )
+        errors = serializer.errors
 
-        if not serializer.is_valid():
+        formatted_errors = {}
 
-            errors = serializer.errors
+        for field, error_list in errors.items():
 
-            formatted_errors = {}
+            for i, e in enumerate(error_list):
 
-            for field, error_list in errors.items():
+                match e:
 
-                for i, e in enumerate(error_list):
+                    case 'blog user with this nickname already exists.':
 
-                    match e:
+                        error_list[i] = 'User with this nickname already exists.'
 
-                        case 'blog user with this nickname already exists.':
+                    case 'blog user with this email already exists.':
 
-                            error_list[i] = 'User with this nickname already exists.'
+                        error_list[i] = 'User with this email already exists.'
 
-                        case 'blog user with this email already exists.':
+            formatted_errors[field] = " ".join(error_list)
 
-                            error_list[i] = 'User with this email already exists.'
+        return Response(
+            {"errors": formatted_errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-                formatted_errors[field] = " ".join(error_list)
-
-            return Response(
-                {"errors": formatted_errors},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        return Response({"message": "Please check your email for confirmation."}, status=status.HTTP_200_OK)
 
 
 class Register_Confirm(generics.GenericAPIView):
@@ -100,28 +97,21 @@ class Register_Confirm(generics.GenericAPIView):
 
             if user_data:
 
-                if BlogUser.objects.filter(email=user_data['email']).exists():
-                    return Response({"errors": {"message": "Email is already taken."}},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                try:
 
-                if BlogUser.objects.filter(nickname=user_data['nickname']).exists():
-                    return Response({"errors": {"message": "Nickname is already taken."}},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                    confirmation_service = RegistrationConfirmationService(code, user_data)
+                    confirmation_service.execute()
+                    return Response({"message": "Registration successfully."}, status=status.HTTP_200_OK)
 
-                user = BlogUser.objects.create_user(
-                        nickname=user_data['nickname'],
-                        username=user_data['username'],
-                        email=user_data['email'],
-                        password=user_data['password']
-                    )
+                except ValueError as e:
 
-                cache.delete(code)
-
-                return Response({"message": "Registration successfully."}, status=status.HTTP_200_OK)
+                    return Response({"errors": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
 
             else:
 
                 return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Login_User(generics.GenericAPIView):
@@ -158,22 +148,42 @@ class Login_User(generics.GenericAPIView):
 
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = serializer.validated_data['user']
+        user_data = serializer.validated_data
+        print(user_data)
+        auth_service = AuthenticationService(user_data)
+        
+        try:
 
-        refresh = RefreshToken.for_user(user)
+            user, refresh_token, access_token = auth_service.execute()
 
-        user_data = BlogUser.objects.get(nickname=str(user))
+            try:
+                print(user)
+                user_data = BlogUser.objects.get(email=str(user))
+                print(user_data)
+            except BlogUser.DoesNotExist:
 
-        return Response({
-            'refresh_token': str(refresh),
-            'access_token': str(refresh.access_token),
-            "user": {
-                "username": user_data.username,
-                "nickname": user_data.nickname,
-                "pk": user_data.pk,
-                "email": user_data.email
-            }
-        })
+                try:
+
+                    user_data = BlogUser.objects.get(nickname=str(user))
+
+                except:
+
+                    raise serializers.ValidationError({"nickname": "User does not exist."})
+
+            return Response({
+                'refresh_token': refresh_token,
+                'access_token': access_token,
+                "user": {
+                    "username": user_data.username,
+                    "nickname": user_data.nickname,
+                    "pk": user_data.pk,
+                    "email": user_data.email
+                }
+            })
+
+        except Exception as e:
+
+            return Response({'errors': {'error': str(e)}}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class Request_Password_Recovery(generics.GenericAPIView):
@@ -190,33 +200,26 @@ class Request_Password_Recovery(generics.GenericAPIView):
         
             user_data = serializer.validated_data
 
-            print(user_data)
+            recovery_service = RequestPasswordRecoveryService(user_data)
 
-            recovery_code = random.randint(100000,999999)
+            try:
 
-            cache.set(recovery_code, user_data, timeout=180)
+                recovery_code = recovery_service.execute()
 
-            request.session['user_data'] = user_data
+                request.session['user_data'] = user_data
 
-            send_mail(
-                'Registration code',
-                f"Here is the code for password recovery: {recovery_code} and here is the link for this action: http://localhost:4200/recovery",
-                'plextaskmanager@gmail.com',
-                [f'{user_data.get('email')}']
-            )
+                return Response({"message": "We sent you a password recovery code."}, status=status.HTTP_200_OK)
 
-            return Response({"message": "We sent to you password recovery code."}, status=status.HTTP_200_OK)
+            except Exception as e:
+
+                return Response({"errors": {"message": str(e)}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
         errors = serializer.errors
 
-        formatted_errors = {}
+        formatted_errors = {field: error[0] for field, error in errors.items()}
 
-        for field, error in errors.items():
-            formatted_errors[field] = error[0]
-
-        print(formatted_errors)
-
-        return Response({"errors": formatted_errors}, status=400)
+        return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Password_Recovery(generics.GenericAPIView):
@@ -234,30 +237,17 @@ class Password_Recovery(generics.GenericAPIView):
             recovery_code = serializer.data.get('code')
 
             password = serializer.data.get('password')
-            print(password)
-            user_data = cache.get(recovery_code)
 
-            if user_data:
+            recovery_service = PasswordRecoveryService(recovery_code, password)
 
-                try:
+            try:
 
-                    user = BlogUser.objects.get(email=user_data['email'])
-
-                except BlogUser.DoesNotExist:
-
-                    return Response({"errors": {"message": "User with this email does not exist."}},
-                                    status=status.HTTP_404_NOT_FOUND)
-                print(user)
-                user.set_password(password)
-
-                user.save()
-
-                cache.delete(recovery_code)
+                user = recovery_service.execute()
 
                 return Response({"message": "Password successfully changed."}, status=status.HTTP_200_OK)
 
-            else:
+            except ValueError as e:
 
-                return Response({"errors": {"message": "Invalid code."}}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"errors": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

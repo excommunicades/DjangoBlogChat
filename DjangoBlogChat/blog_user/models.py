@@ -1,5 +1,27 @@
+import os
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
+
+
+def image_upload_function(instance, filename):
+
+    model_name = instance.__class__.__name__.lower()
+
+    if model_name == "BlogUser":
+
+        folder_name = "users_avatars"
+
+    elif model_name == "BlogUserManager":
+
+        folder_name = "users_avatars"
+
+    else:
+        folder_name = "other_images"
+
+    safe_title = instance.title.replace(" ", "_").replace("/", "_")
+
+    return os.path.join(folder_name, safe_title, filename)
 
 
 class BlogUserManager(BaseUserManager):
@@ -53,8 +75,7 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
                             null=False,
                             )
 
-    # age = models.SmallIntegerField()
-    # date_of_birth = models.DateField(null=True, blank=True)
+    avatar = models.ImageField(upload_to=image_upload_function, blank=True, null=True)
 
     is_actived = models.BooleanField(default=True)
 
