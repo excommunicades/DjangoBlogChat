@@ -13,6 +13,7 @@ from blog_user.views import (
     Password_Recovery,
 )
 
+
 urlpatterns = [
     path('register', Register_User.as_view(), name="user_registration"),
     path('login', Login_User.as_view(), name="user_authorization"),

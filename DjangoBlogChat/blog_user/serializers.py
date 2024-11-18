@@ -11,20 +11,30 @@ from blog_user.models import BlogUser
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, help_text="The user's password.")
 
-    confirm_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True, help_text="Confirm the user's password.")
 
-    """Serializer for user's registration"""
+    """
+    Serializer for user registration.
+    Validates that the user's nickname, email, and password meet specific criteria.
+    Passwords must match and must meet strength requirements.
+    """
+
     class Meta:
 
         model = BlogUser
 
         fields = ['nickname', 'username', 'email', 'password', 'confirm_password']
+        help_texts = {
+            'nickname': 'Unique nickname for the user.',
+            'username': 'User’s full name.',
+            'email': 'User’s email address.',
+        }
 
     def validate_nickname(self, value):
 
-        """checks username for uniqueness in db"""
+        """Ensure the nickname is unique and doesn't exist in the database."""
 
         if BlogUser.objects.filter(nickname=value).exists():
 
@@ -34,7 +44,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
 
-        """checks email for uniqueness in db"""
+        """Ensure the email is valid and unique in the database."""
 
         email_pattern = r'^[a-zA-Z0-9.%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'
 
@@ -50,7 +60,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
 
-        """Validates the password strength"""
+        """
+        Ensure the password meets specific strength requirements:
+        - At least 8 characters
+        - Contains at least one digit
+        - Contains at least one special character
+        """
 
         pattern = r'^(?=.*[!@#$%^&()+}{":;\'?/>.<,`~])(?=.*\d)[^\s]{8,}$'
 
@@ -64,7 +79,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
 
-        """Check if passwords match"""
+        """Ensure the password and confirm password fields match."""
 
         if attrs['password'] != attrs['confirm_password']:
 
@@ -74,7 +89,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        """Create the user instance and set the password"""
+        """Create the user instance and set the password securely."""
 
         validated_data.pop('confirm_password')
 
@@ -89,7 +104,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 class RegistrationConfirmSerializer(serializers.Serializer):
 
-    """Serializer for code' request"""
+    """Serializer for confirming user registration with a confirmation code.
+    Validates that the code is a 6-digit number.
+    """
 
     code = serializers.IntegerField()
 
@@ -104,13 +121,18 @@ class RegistrationConfirmSerializer(serializers.Serializer):
 
 class AuthorizationSerializer(serializers.Serializer):
 
-    """Serializer for user's login request"""
+    """
+    Serializer for user login.
+    Validates the nickname and password for authentication.
+    """
 
     nickname = serializers.CharField()
 
     password = serializers.CharField()
 
     def validate(self, attrs):
+
+        """Validates the provided credentials (nickname and password)."""
 
         nickname = attrs.get('nickname')
 
@@ -130,9 +152,9 @@ class AuthorizationSerializer(serializers.Serializer):
         if user is None:
 
             try:
-                # print(nickname)
+
                 user = BlogUser.objects.get(email=nickname)
-                # print(user.email)
+
             except BlogUser.DoesNotExist:
 
                 try:
@@ -156,9 +178,14 @@ class RequestPasswordRecoverySerializer(serializers.Serializer):
 
     email = serializers.EmailField()
 
-    """Serializer for user's registration"""
-
+    """
+    Serializer for requesting a password recovery code.
+    Validates that the email exists in the database.
+    """
+    
     def validate_email(self, value):
+
+        """ Ensure the provided email is associated with an existing user."""
 
         try:
 
@@ -173,17 +200,20 @@ class RequestPasswordRecoverySerializer(serializers.Serializer):
 
 class PasswordRecoverySerializer(serializers.Serializer):
 
+    """
+    Serializer for confirming password recovery.
+    Validates the recovery code, new password, and password confirmation.
+    """
+
     code = serializers.IntegerField()
 
     password = serializers.CharField()
 
     confirm_password = serializers.CharField()
 
-    """Serializer for user's registration"""
-
     def validate_password(self, value):
 
-        """Validates the password strength"""
+        """Ensure the new password meets the strength requirements."""
 
         pattern = r'^(?=.*[!@#$%^&()+}{":;\'?/>.<,`~])(?=.*\d)[^\s]{8,}$'
 
@@ -197,6 +227,8 @@ class PasswordRecoverySerializer(serializers.Serializer):
 
     def validate_code(self, value):
 
+        """Ensure the recovery code is a valid 6-digit number."""
+
         if value < 100000 or value > 999999:
 
             raise serializers.ValidationError("Invalid Code.")
@@ -205,7 +237,7 @@ class PasswordRecoverySerializer(serializers.Serializer):
 
     def validate(self, attrs):
 
-        """Check if passwords match"""
+        """Ensure the password and confirm password fields match."""
 
         if attrs['password'] != attrs['confirm_password']:
 

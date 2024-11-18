@@ -34,8 +34,10 @@ from blog_user.models import BlogUser
 
 class Register_User(generics.CreateAPIView):
 
-    """Endpoint for user registration"""
-
+    """
+    Endpoint for user registration.
+    Creates a new user and sends a confirmation code to the user's email.
+    """
     serializer_class = RegistrationSerializer
 
     def create(self, request, *args, **kwargs):
@@ -81,7 +83,10 @@ class Register_User(generics.CreateAPIView):
 
 class Register_Confirm(generics.GenericAPIView):
 
-    """Endpoint for code confirm"""
+    """
+    Endpoint for confirming registration with a code.
+    Confirms the user registration if the code is valid.
+    """
 
     serializer_class = RegistrationConfirmSerializer
 
@@ -116,7 +121,10 @@ class Register_Confirm(generics.GenericAPIView):
 
 class Login_User(generics.GenericAPIView):
 
-    """Endpoint for user authentication"""
+    """
+    Endpoint for user authentication.
+    Returns access and refresh tokens upon successful login.
+    """
 
     serializer_class = AuthorizationSerializer
 
@@ -188,7 +196,12 @@ class Login_User(generics.GenericAPIView):
 
 class Request_Password_Recovery(generics.GenericAPIView):
 
-    """Endpoint for code confirm"""
+    """
+    Endpoint for requesting a password recovery code.
+
+    This endpoint accepts the user's email, checks if the user exists,
+    and sends a password recovery code to the user's email.
+    """
 
     serializer_class = RequestPasswordRecoverySerializer
 
@@ -224,7 +237,11 @@ class Request_Password_Recovery(generics.GenericAPIView):
 
 class Password_Recovery(generics.GenericAPIView):
 
-    """Endpoint for code confirm"""
+    """
+    Endpoint for submitting the password recovery code and new password.
+
+    This endpoint allows the user to submit the recovery code and a new password to change their password.
+    """
 
     serializer_class = PasswordRecoverySerializer
 

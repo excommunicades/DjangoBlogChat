@@ -50,6 +50,12 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
     # first_name = models.CharField(max_length=30, blank=False, null=False)
     # last_name = models.CharField(max_length=30, blank=False, null=False)
 
+    USER_ROLE_CHOICES = [
+        ('user', 'User'),
+        ('moderator', 'Moderator'),
+        ('admin', 'Administrator'),
+    ]
+
     username = models.CharField(
                             max_length=30,
                             blank= False,
@@ -81,7 +87,11 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
 
     is_authenticated = models.BooleanField(default=False)
 
-    is_admin = models.BooleanField(default=False)
+    role = models.CharField(
+                        max_length=10,
+                        choices=USER_ROLE_CHOICES,
+                        default='user'
+                            )
 
     USERNAME_FIELD = 'nickname'
 
