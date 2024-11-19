@@ -10,7 +10,7 @@ from api.api_actions.utils.posts_utils import (
     update_post
 )
 
-from publish.models.models import Posts
+from publish.models.posts_models import Posts
 
 
 class PostsCRUD(generics.GenericAPIView):

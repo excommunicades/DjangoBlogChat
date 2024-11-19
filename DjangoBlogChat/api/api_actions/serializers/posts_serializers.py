@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from publish.models.models import Posts
+from publish.models.posts_models import Posts
 
 class PostsOutSerializer(serializers.ModelSerializer):
 

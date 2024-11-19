@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import status
 
-from publish.models.models import Posts
+from publish.models.posts_models import Posts
 
 def update_post(self, request, object):
 
