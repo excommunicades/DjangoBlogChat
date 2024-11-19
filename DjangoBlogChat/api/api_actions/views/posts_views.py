@@ -4,10 +4,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from api.api_actions.serializers.posts_serializers import (
     PostsOutSerializer,
-    PostsInSerializer
+    PostsInSerializer,
+    PostsUpdateSerializer
 )
 from api.api_actions.utils.posts_utils import (
-    update_post
+    update_post,
+    delete_post
 )
 
 from publish.models.posts_models import Posts
@@ -24,6 +26,10 @@ class PostsCRUD(generics.GenericAPIView):
         if self.request.method == 'GET':
 
             return PostsOutSerializer
+
+        elif self.request.method == 'PUT' or self.request.method == 'PATCH':
+
+            return PostsUpdateSerializer
 
         return PostsInSerializer
 
@@ -83,24 +89,4 @@ class PostsCRUD(generics.GenericAPIView):
 
         object = self.get_object()
 
-        if object:
-
-            user = request.user
-
-            request_user = user.nickname
-
-            post = object.title
-
-            post = Posts.objects.filter(owner=object.owner, title=post)
-
-            if str(request_user) == str(post[0].owner):
-
-                post.delete()
-
-                return Response({"message": "Post deleted successfully."})
-
-            return Response({"message": "You are not a owner of this post"})
-
-        formatted_errors = {field: error[0] for field, error in serializer.errors.items()}
-
-        return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
+        return delete_post(self, request, object)

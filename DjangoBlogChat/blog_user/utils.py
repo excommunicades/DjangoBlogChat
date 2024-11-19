@@ -1,10 +1,13 @@
 import random
 
-from django.core.cache import cache
-from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+from rest_framework import status
+
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.cache import cache
+from django.core.mail import send_mail
 
 from blog_user.models import BlogUser
 
@@ -206,3 +209,19 @@ class PasswordRecoveryService:
         self.change_password(user)
         cache.delete(self.recovery_code)
         return user
+
+
+from blog_user.models import BlogUser
+
+
+def get_user_by_request(request_user):
+
+    try:
+
+        user = BlogUser.objects.get(nickname=str(request_user))
+
+    except BlogUser.DoesNotExist:
+
+        return None
+
+    return user

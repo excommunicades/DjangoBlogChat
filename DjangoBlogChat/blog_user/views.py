@@ -1,25 +1,19 @@
-import random
-
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.views import exception_handler
-from rest_framework.exceptions import ValidationError
 
-
-from django.db import IntegrityError
 from django.core.cache import cache
-from django.core.mail import send_mail
 
 from blog_user.serializers import (
     RegistrationSerializer,
     AuthorizationSerializer,
     RegistrationConfirmSerializer,
     RequestPasswordRecoverySerializer,
-    PasswordRecoverySerializer
+    PasswordRecoverySerializer,
+    GetUserDataSerializer,
     )
 
 from blog_user.utils import (
@@ -27,8 +21,12 @@ from blog_user.utils import (
     RegistrationConfirmationService,
     AuthenticationService,
     RequestPasswordRecoveryService,
-    PasswordRecoveryService
+    PasswordRecoveryService,
+    get_user_by_request
 )
+
+
+
 from blog_user.models import BlogUser
 
 
@@ -268,3 +266,33 @@ class Password_Recovery(generics.GenericAPIView):
                 return Response({"errors": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Get_User_Data(generics.GenericAPIView):
+
+    """
+    Endpoint for getting user data.
+
+    This endpoint allows the take info about user account.
+    """
+
+    authentication_classes = [JWTAuthentication]
+    serializer_class = GetUserDataSerializer
+
+    def post(self, request, *args, **kwargs):
+
+        request_user = self.request.user
+
+        user = get_user_by_request(request_user=request_user)
+
+        if user is None:
+
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+                    "username": user.username,
+                    "nickname": user.nickname,
+                    "email": user.email,
+                    "is_activated": user.is_actived,
+                    "role": user.role
+                }, status=status.HTTP_200_OK)
