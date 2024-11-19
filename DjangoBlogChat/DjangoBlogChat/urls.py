@@ -24,18 +24,7 @@ from django.views.generic import TemplateView
 from django.contrib import admin
 from django.urls import path, include
 
-# schema_view = get_schema_view(
-#     openapi.Info(
-#         title="Blog API",
-#         default_version='v1',
-#         description="API for user registration, login, and password recovery",
-#         terms_of_service="https://www.google.com/policies/terms/",
-#         contact=openapi.Contact(email="contact@blogapi.com"),
-#         license=openapi.License(name="MIT License"),
-#     ),
-#     public=True,
-#     permission_classes=(AllowAny,),
-# )
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

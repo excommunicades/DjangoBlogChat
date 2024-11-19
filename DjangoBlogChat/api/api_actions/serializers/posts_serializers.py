@@ -57,3 +57,42 @@ class PostsInSerializer(serializers.ModelSerializer):
         validated_data['owner'] = owner
 
         return super().create(validated_data)
+
+
+class PostsUpdateSerializer(serializers.ModelSerializer):
+
+    """Transform json data to db datatype"""
+
+    class Meta:
+
+        model = Posts
+
+        fields = [
+            'title',
+            'content',
+            'head_image',
+            'add_image_1',
+            'add_image_2',
+            'add_image_3',
+            'add_image_4',
+            'add_image_5',
+        ]
+
+        extra_kwargs = {
+            'title': {'required': False},
+            'content': {'required': False},
+            'head_image': {'required': False},
+            'add_image_1': {'required': False},
+            'add_image_2': {'required': False},
+            'add_image_3': {'required': False},
+            'add_image_4': {'required': False},
+            'add_image_5': {'required': False},
+        }
+
+    def validate(self, data):
+
+        if not any(data.values()):
+
+            raise serializers.ValidationError({"error": "At least one field must be provided."})
+
+        return data
