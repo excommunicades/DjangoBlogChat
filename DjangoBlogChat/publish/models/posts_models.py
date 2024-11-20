@@ -43,6 +43,9 @@ class Posts(models.Model):
 
     add_image_5 = models.ImageField(upload_to=image_upload_function, blank=True, null=True)
 
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
 class PostReactions(models.Model):
 
@@ -62,5 +65,9 @@ class PostReactions(models.Model):
                             max_length=7,
                             choices=REACTION_CHOICES,
                             default='none')
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
 # TODO: choices, logic
