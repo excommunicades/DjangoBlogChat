@@ -36,6 +36,7 @@ class Register_User(generics.CreateAPIView):
     Endpoint for user registration.
     Creates a new user and sends a confirmation code to the user's email.
     """
+
     serializer_class = RegistrationSerializer
 
     def create(self, request, *args, **kwargs):
@@ -155,7 +156,7 @@ class Login_User(generics.GenericAPIView):
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
         user_data = serializer.validated_data
-        print(user_data)
+
         auth_service = AuthenticationService(user_data)
         
         try:
