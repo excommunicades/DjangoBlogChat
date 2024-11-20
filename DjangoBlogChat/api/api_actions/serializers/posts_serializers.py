@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from publish.models.posts_models import Posts
+from publish.models.posts_models import Posts, PostReactions
 
 class PostsOutSerializer(serializers.ModelSerializer):
 
@@ -96,3 +96,25 @@ class PostsUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"error": "At least one field must be provided."})
 
         return data
+
+
+class SetReactionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = PostReactions
+
+        fields = ['post', 'reaction']
+
+        extra_kwargs = {
+            'post': {'required': True},
+            'reaction': {'required': True},
+        }
+
+    def create(self, validated_data):
+
+        user = self.context['request'].user
+
+        validated_data['user'] = user
+
+        return super().create(validated_data)

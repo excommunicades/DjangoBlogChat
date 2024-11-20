@@ -42,3 +42,25 @@ class Posts(models.Model):
     add_image_4 = models.ImageField(upload_to=image_upload_function, blank=True, null=True)
 
     add_image_5 = models.ImageField(upload_to=image_upload_function, blank=True, null=True)
+
+
+class PostReactions(models.Model):
+
+    """Model about post reactions as like, dislike, etc"""
+
+    REACTION_CHOICES = [
+        ('none', 'none'),
+        ('like', 'like'),
+        ('dislike', 'dislike'),
+    ]
+
+    post = models.ForeignKey(Posts, on_delete=models.CASCADE)
+
+    user = models.ForeignKey('blog_user.BlogUser', on_delete=models.CASCADE)
+
+    reaction = models.CharField(
+                            max_length=7,
+                            choices=REACTION_CHOICES,
+                            default='none')
+
+# TODO: choices, logic
