@@ -2,6 +2,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from django.contrib.auth.models import AnonymousUser
+
 from api.api_actions.serializers.posts_serializers import (
     PostsOutSerializer,
     PostsInSerializer,
@@ -15,6 +17,66 @@ from api.api_actions.utils.posts_utils import (
 
 from publish.models.posts_models import Posts, PostReactions
 
+class PostListCreate(generics.ListCreateAPIView):
+
+    queryset = Posts.objects.all()
+
+    authentication_classes = [JWTAuthentication]
+
+    def get_serializer_class(self):
+
+        if self.request.method == 'GET':
+
+            return PostsOutSerializer
+
+        return PostsInSerializer
+
+    def get(self, request, *args, **kwargs):
+        
+        posts = self.get_queryset()
+
+        response_data = []
+
+        for post in posts:
+
+            serializer = self.get_serializer(post)
+
+            reactions = PostReactions.objects.filter(post=post)
+
+            like_counter = 0
+            dislike_counter = 0
+
+            for reaction in reactions:
+                if reaction.reaction == 'like':
+                    like_counter += 1
+                elif reaction.reaction == 'dislike':
+                    dislike_counter += 1
+
+            post_data = serializer.data
+            post_data['like'] = like_counter
+            post_data['dislike'] = dislike_counter
+
+            response_data.append(post_data)
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+
+            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response({"message": "Post created successfully."})
+
+        formatted_errors = {field: error[0] for field, error in serializer.errors.items()}
+
+        return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class PostsCRUD(generics.GenericAPIView):
 
@@ -38,6 +100,10 @@ class PostsCRUD(generics.GenericAPIView):
 
 
     def get(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+
+            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
 
         if self.kwargs.get('pk'):
 
@@ -75,48 +141,13 @@ class PostsCRUD(generics.GenericAPIView):
 
         else:
 
-            posts = self.get_queryset()
-
-            response_data = []
-
-            for post in posts:
-
-                serializer = self.get_serializer(post)
-
-                reactions = PostReactions.objects.filter(post=post)
-
-                like_counter = 0
-                dislike_counter = 0
-
-                for reaction in reactions:
-                    if reaction.reaction == 'like':
-                        like_counter += 1
-                    elif reaction.reaction == 'dislike':
-                        dislike_counter += 1
-
-                post_data = serializer.data
-                post_data['like'] = like_counter
-                post_data['dislike'] = dislike_counter
-
-                response_data.append(post_data)
-
-            return Response(response_data, status=status.HTTP_200_OK)
-
-    def post(self, request, *args, **kwargs):
-
-        serializer = self.get_serializer(data=request.data)
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response({"message": "Post created successfully."})
-
-        formatted_errors = {field: error[0] for field, error in serializer.errors.items()}
-
-        return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Post not found."}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+
+            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
 
         object = self.get_object()
 
@@ -124,11 +155,19 @@ class PostsCRUD(generics.GenericAPIView):
 
     def patch(self, request, *args, **kwargs):
 
+        if not request.user.is_authenticated:
+
+            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
+
         object = self.get_object()
 
         return update_post(self, request, object)
 
     def delete(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+
+            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
 
         object = self.get_object()
 
@@ -141,6 +180,10 @@ class SetReactionToPOST(generics.GenericAPIView):
     serializer_class = SetReactionSerializer
 
     def post(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+
+            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = self.get_serializer(data=request.data)
 
