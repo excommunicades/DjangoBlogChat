@@ -85,6 +85,8 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
 
     is_actived = models.BooleanField(default=True)
 
+    is_blocked = models.BooleanField(default=False)
+
     role = models.CharField(
                         max_length=10,
                         choices=USER_ROLE_CHOICES,
