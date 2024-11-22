@@ -280,7 +280,7 @@ class Get_User_Data(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = GetUserDataSerializer
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
 
         request_user = self.request.user
 
@@ -288,7 +288,7 @@ class Get_User_Data(generics.GenericAPIView):
 
         if user is None:
 
-            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User does not exist."}, status=status.HTTP_401_UNAUTHORIZED)
 
         return Response({
                     "username": user.username,
