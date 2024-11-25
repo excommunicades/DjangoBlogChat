@@ -244,16 +244,3 @@ class PasswordRecoverySerializer(serializers.Serializer):
             raise serializers.ValidationError({"confirm_password": "Passwords must match."})
 
         return attrs
-
-
-class GetUserDataSerializer(serializers.Serializer):
-
-    """
-    Serializer for data transfer for bd/ also for swagger.
-    """
-
-    username = serializers.CharField()
-    nickname = serializers.CharField()
-    email = serializers.EmailField()
-    is_activated = serializers.BooleanField()
-    role = serializers.CharField()
