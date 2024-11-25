@@ -74,7 +74,6 @@ class Register_User(generics.CreateAPIView):
         )
 
 
-
 class Register_Confirm(generics.GenericAPIView):
 
     """
