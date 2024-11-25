@@ -95,15 +95,15 @@ class AuthenticationService:
 
         try:
 
-            user = BlogUser.objects.filter(email=self.nickname).first()
+            user = BlogUser.objects.get(email=self.nickname)
 
-        except Errors:
+        except Exception:
 
             try:
 
-                user = BlogUser.objects.filter(nickname=self.nickname).first()
+                user = BlogUser.objects.get(nickname=self.nickname)
 
-            except Errors:
+            except Exception:
 
                 raise Exception('User does not exist.')
 
@@ -111,13 +111,13 @@ class AuthenticationService:
 
             user = authenticate(nickname=user, password=self.password)
 
-        except Errors:
+        except Exception:
 
             try:
 
                 user = authenticate(nickname=user, password=self.password)
 
-            except Errors:
+            except Exception:
 
                 raise Exception('Wrong password.')
 
@@ -209,19 +209,3 @@ class PasswordRecoveryService:
         self.change_password(user)
         cache.delete(self.recovery_code)
         return user
-
-
-from blog_user.models import BlogUser
-
-
-def get_user_by_request(request_user):
-
-    try:
-
-        user = BlogUser.objects.get(nickname=str(request_user))
-
-    except BlogUser.DoesNotExist:
-
-        return None
-
-    return user

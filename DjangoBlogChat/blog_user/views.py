@@ -1,7 +1,4 @@
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 
@@ -13,7 +10,6 @@ from blog_user.serializers import (
     RegistrationConfirmSerializer,
     RequestPasswordRecoverySerializer,
     PasswordRecoverySerializer,
-    GetUserDataSerializer,
     )
 
 from blog_user.utils import (
@@ -22,7 +18,6 @@ from blog_user.utils import (
     AuthenticationService,
     RequestPasswordRecoveryService,
     PasswordRecoveryService,
-    get_user_by_request
 )
 
 
@@ -135,6 +130,8 @@ class Login_User(generics.GenericAPIView):
 
         if not serializer.is_valid():
 
+            print(serializer)
+
             errors = serializer.errors
 
             nickname_error = errors.get('nickname', [])
@@ -154,8 +151,9 @@ class Login_User(generics.GenericAPIView):
                 return Response({'errors': {'password': 'Wrong password.'}}, status=status.HTTP_401_UNAUTHORIZED)
 
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
-
         user_data = serializer.validated_data
+
+        # print(user_data)
 
         auth_service = AuthenticationService(user_data)
         
@@ -164,9 +162,9 @@ class Login_User(generics.GenericAPIView):
             user, refresh_token, access_token = auth_service.execute()
 
             try:
-                print(user)
+
                 user_data = BlogUser.objects.get(email=str(user))
-                print(user_data)
+
             except BlogUser.DoesNotExist:
 
                 try:
@@ -267,33 +265,3 @@ class Password_Recovery(generics.GenericAPIView):
                 return Response({"errors": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class Get_User_Data(generics.GenericAPIView):
-
-    """
-    Endpoint for getting user data.
-
-    This endpoint allows the take info about user account.
-    """
-
-    authentication_classes = [JWTAuthentication]
-    serializer_class = GetUserDataSerializer
-
-    def get(self, request, *args, **kwargs):
-
-        request_user = self.request.user
-
-        user = get_user_by_request(request_user=request_user)
-
-        if user is None:
-
-            return Response({"error": "User does not exist."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        return Response({
-                    "username": user.username,
-                    "nickname": user.nickname,
-                    "email": user.email,
-                    "is_activated": user.is_actived,
-                    "role": user.role
-                }, status=status.HTTP_200_OK)

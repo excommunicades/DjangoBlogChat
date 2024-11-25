@@ -101,10 +101,6 @@ class PostsCRUD(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
 
-        if not request.user.is_authenticated:
-
-            return Response({"errors": {"error": "You need to authenticate for this action."}}, status=status.HTTP_401_UNAUTHORIZED)
-
         if self.kwargs.get('pk'):
 
             try:

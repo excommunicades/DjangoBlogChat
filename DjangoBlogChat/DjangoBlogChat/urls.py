@@ -30,6 +30,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('blog_user.urls')),
     path('api/', include('api.settings.urls')),
+    path('profile/', include('user_profile.urls')),
 
     path('api_schema', get_schema_view(title='Swagger', description='Guide for the REST API'), name='api_schema'),
     path('swagger', TemplateView.as_view(
