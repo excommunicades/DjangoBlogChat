@@ -218,5 +218,5 @@ def set_tokens_in_cookies(response, refresh_token):
         httponly=True,
         secure=True,
         samesite='Lax',
-        max_age=3600*24*7
+        max_age=3600*24*21
     )
