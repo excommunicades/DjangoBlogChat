@@ -1,8 +1,12 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
 
 from blog_user.serializers import (
     RegistrationSerializer,
@@ -18,6 +22,7 @@ from blog_user.utils import (
     AuthenticationService,
     RequestPasswordRecoveryService,
     PasswordRecoveryService,
+    set_tokens_in_cookies,
 )
 
 
@@ -174,8 +179,8 @@ class Login_User(generics.GenericAPIView):
 
                     raise serializers.ValidationError({"nickname": "User does not exist."})
 
-            return Response({
-                'refresh_token': refresh_token,
+
+            response = Response({
                 'access_token': access_token,
                 "user": {
                     "username": user_data.username,
@@ -185,10 +190,40 @@ class Login_User(generics.GenericAPIView):
                 }
             })
 
+            set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
+
+
+            return response
+
         except Exception as e:
 
             return Response({'errors': {'error': str(e)}}, status=status.HTTP_401_UNAUTHORIZED)
 
+
+@csrf_exempt
+@api_view(['POST'])
+def refresh_token_view(request):
+
+    refresh_token = request.COOKIES.get('refreshToken')
+
+    if not refresh_token:
+
+        return Response({'error': 'Refresh token is missing in cookies'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+
+        token = RefreshToken(refresh_token)
+        print('sdf')
+        access_token = token.access_token
+        print(access_token)
+
+        return Response({
+            'access_token': str(access_token)
+        })
+
+    except Exception as e:
+
+        return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 class Request_Password_Recovery(generics.GenericAPIView):
 

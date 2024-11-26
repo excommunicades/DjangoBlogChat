@@ -11,6 +11,7 @@ from blog_user.views import (
     Register_Confirm,
     Request_Password_Recovery,
     Password_Recovery,
+    refresh_token_view
 )
 
 
@@ -20,5 +21,5 @@ urlpatterns = [
     path('register-confirm', Register_Confirm.as_view(), name="user_registration_confirm"),
     path('request-password-recovery', Request_Password_Recovery.as_view(), name="request_password_recovery"),
     path('password-recovery', Password_Recovery.as_view(), name="password_recovery"),
-    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/refresh', refresh_token_view, name='token_refresh'),
 ]

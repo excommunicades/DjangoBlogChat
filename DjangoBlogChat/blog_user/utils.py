@@ -209,3 +209,14 @@ class PasswordRecoveryService:
         self.change_password(user)
         cache.delete(self.recovery_code)
         return user
+
+
+def set_tokens_in_cookies(response, refresh_token):
+
+    response.set_cookie(
+        'refreshToken', refresh_token,
+        httponly=True,
+        secure=True,
+        samesite='Lax',
+        max_age=3600*24*7
+    )
