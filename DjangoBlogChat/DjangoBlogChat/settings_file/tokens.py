@@ -3,7 +3,7 @@ from datetime import timedelta
 from .base import SECRET_KEY
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=31),
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=310000000000),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=21), # days=1
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,

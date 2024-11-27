@@ -55,3 +55,34 @@ def delete_post(self, request, object):
     formatted_errors = {field: error[0] for field, error in serializer.errors.items()}
 
     return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def post_paginator(page, page_size):
+
+    page_size = 3
+
+    if page:
+
+        page_number = int(page)
+
+        if page_number > 1:
+
+            start = (page_number-1) * page_size
+
+            end = start + page_size
+
+            queryset = Posts.objects.all()[start:end]
+
+        else:
+
+            start = 0
+
+            end = page_size
+
+            queryset = Posts.objects.all()[start:end]
+
+    else:
+
+        queryset = Posts.objects.all()[0:page_size]
+
+    return queryset

@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import ValidationError
 
 from django.contrib.auth.models import AnonymousUser
 
@@ -12,14 +13,14 @@ from api.api_actions.serializers.posts_serializers import (
 )
 from api.api_actions.utils.posts_utils import (
     update_post,
-    delete_post
+    delete_post,
+    post_paginator
 )
 
 from publish.models.posts_models import Posts, PostReactions
 
 class PostListCreate(generics.ListCreateAPIView):
 
-    queryset = Posts.objects.all()
 
     authentication_classes = [JWTAuthentication]
 
@@ -31,8 +32,20 @@ class PostListCreate(generics.ListCreateAPIView):
 
         return PostsInSerializer
 
+    def get_queryset(self):
+
+            page = self.request.query_params.get('page', None)
+
+            if page and not page.isdigit():
+
+                raise ValidationError({"error": "Query parameter does not exist."})
+
+            page_size = 3
+
+            return post_paginator(page=page, page_size=page_size)
+
     def get(self, request, *args, **kwargs):
-        
+
         posts = self.get_queryset()
 
         response_data = []
