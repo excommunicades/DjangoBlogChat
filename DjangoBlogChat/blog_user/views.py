@@ -241,7 +241,7 @@ class Request_Password_Recovery(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-
+        
             user_data = serializer.validated_data
 
             recovery_service = RequestPasswordRecoveryService(user_data)
