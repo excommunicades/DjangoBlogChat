@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    env_file:
+      - ./.env
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: BlogChat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    networks:
+      - djangoblogchat_net
+
+  web:
+    build: .
+    command: sh -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    networks:
+      - djangoblogchat_net
+    environment:
+      - DATABASE_URL=postgres://postgres:12345@db:5432/BlogChat
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6383:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - djangoblogchat_net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  djangoblogchat_net:
+    driver: bridge

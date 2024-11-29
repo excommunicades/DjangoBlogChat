@@ -84,5 +84,5 @@ def post_paginator(page, page_size):
     else:
 
         queryset = Posts.objects.all()[0:page_size]
-
+    print(queryset)
     return queryset

@@ -134,8 +134,6 @@ class Login_User(generics.GenericAPIView):
 
         if not serializer.is_valid():
 
-            print(serializer)
-
             errors = serializer.errors
 
             nickname_error = errors.get('nickname', [])
@@ -156,8 +154,6 @@ class Login_User(generics.GenericAPIView):
 
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         user_data = serializer.validated_data
-
-        # print(user_data)
 
         auth_service = AuthenticationService(user_data)
         
@@ -213,9 +209,8 @@ def refresh_token_view(request):
     try:
 
         token = RefreshToken(refresh_token)
-        print('sdf')
+
         access_token = token.access_token
-        print(access_token)
 
         return Response({
             'access_token': str(access_token)

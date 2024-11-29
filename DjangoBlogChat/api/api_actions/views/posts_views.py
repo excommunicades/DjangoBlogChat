@@ -22,7 +22,6 @@ from publish.models.posts_models import Posts, PostReactions
 class PostListCreate(generics.ListCreateAPIView):
 
 
-    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
 
@@ -122,8 +121,6 @@ class PostsCRUD(generics.GenericAPIView):
 
                 serializer = self.get_serializer(object)
 
-                print(serializer.data)
-
                 reactions = PostReactions.objects.filter(post=serializer.data.get('pk'))
 
                 like = 0
@@ -201,7 +198,6 @@ class SetReactionToPOST(generics.GenericAPIView):
         if user:
 
             if serializer.is_valid():
-                print(serializer.validated_data.get('post').pk)
 
                 try:
 
