@@ -183,6 +183,7 @@ class PostsCRUD(generics.GenericAPIView):
 class SetReactionToPOST(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
+
     serializer_class = SetReactionSerializer
 
     def post(self, request, *args, **kwargs):
