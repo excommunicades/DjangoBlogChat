@@ -37,4 +37,6 @@ urlpatterns = [
                         template_name='docs.html',
                         extra_context={'schema_url':'api_schema'}
                         ), name='swagger-ui'),
+    path('chat', TemplateView.as_view(
+                        template_name='chat.html'), name='user_chat')
 ]

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+</head>
+<body>
+    <div id="chat-log"></div>
+    <input id="message-input" type="text" placeholder="Type a message...">
+    <button id="send-button">Send</button>
+
+    <script>
+        const roomName = "room_name";  // Название комнаты
+        const chatLog = document.getElementById('chat-log');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        const socket = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            chatLog.innerHTML += `<p>${data.message}</p>`;
+        };
+
+        sendButton.onclick = function() {
+            const message = messageInput.value;
+            socket.send(JSON.stringify({ 'message': message }));
+            messageInput.value = '';
+        };
+    </script>
+</body>
+</html>
