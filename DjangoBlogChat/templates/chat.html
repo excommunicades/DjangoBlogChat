@@ -1,31 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
 </head>
 <body>
-    <div id="chat-log"></div>
-    <input id="message-input" type="text" placeholder="Type a message...">
-    <button id="send-button">Send</button>
+    <h1>WebSocket Test</h1>
+    <p id="status">Connecting...</p>
 
     <script>
-        const roomName = "room_name";  // Название комнаты
-        const chatLog = document.getElementById('chat-log');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
+        // Устанавливаем соединение с WebSocket
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/public_room/');
 
-        const socket = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
-
-        socket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            chatLog.innerHTML += `<p>${data.message}</p>`;
+        // Обработка открытия соединения
+        socket.onopen = function(event) {
+            console.log('WebSocket is connected');
+            document.getElementById('status').innerText = 'Connected to WebSocket!';
         };
 
-        sendButton.onclick = function() {
-            const message = messageInput.value;
-            socket.send(JSON.stringify({ 'message': message }));
-            messageInput.value = '';
+        // Обработка получения сообщений
+        socket.onmessage = function(event) {
+            const message = JSON.parse(event.data);
+            console.log('Message from server:', message);
+
+            // Обновляем статус пользователя
+            if (message.user_id && message.online_status !== undefined) {
+                updateUserStatus(message.user_id, message.online_status);
+            }
         };
+
+        // Обработка ошибок
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            document.getElementById('status').innerText = 'Error connecting to WebSocket!';
+        };
+
+        // Обработка закрытия соединения
+        socket.onclose = function(event) {
+            console.log('WebSocket is closed');
+            document.getElementById('status').innerText = 'Disconnected from WebSocket!';
+        };
+
+        function updateUserStatus(user_id, online_status) {
+            // Обновляем статус пользователя
+            const statusText = online_status ? 'Online' : 'Offline';
+            document.getElementById('status').innerText = `User ${user_id} is ${statusText}`;
+        }
     </script>
 </body>
 </html>
