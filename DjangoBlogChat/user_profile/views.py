@@ -32,7 +32,7 @@ class Get_User_Data(generics.GenericAPIView):
             return Response({"error": "User does not exist."}, status=status.HTTP_401_UNAUTHORIZED)
 
         return Response({
-                    "id": user.pk,
+                    "userId": user.pk,
                     "username": user.username,
                     "nickname": user.nickname,
                     "email": user.email,

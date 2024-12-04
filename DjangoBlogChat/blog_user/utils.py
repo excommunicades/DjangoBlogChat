@@ -20,7 +20,6 @@ class RegistrationService:
         self.code = random.randint(100000, 999999)
 
     def send_confirmation_email(self):
-
         send_mail(
             'Registration code',
             f"Here is the code for registration: {self.code} and here is the link for this action: http://localhost:4200/confirm",
