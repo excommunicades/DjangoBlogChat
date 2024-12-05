@@ -53,4 +53,4 @@ CHANNEL_LAYERS = {
     },
 }
 
-ASGI_APPLICATION = 'your_project_name.asgi.application'
+ASGI_APPLICATION = 'DjangoBlogChat.asgi.application'

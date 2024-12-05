@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -32,7 +31,7 @@ INSTALLED_APPS = [
 
     'blog_user',
     'publish',
-    'api'
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -45,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 
-    'blog_user.middleware.ErrorHandlingMiddleware'
+    'blog_user.middleware.ErrorHandlingMiddleware',
 ]
 
 TEMPLATES = [
@@ -83,5 +82,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+
     )
 }

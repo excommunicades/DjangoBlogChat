@@ -3,8 +3,6 @@ import os
 
 load_dotenv()
 
-
-
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,13 +39,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MEDIA_URL = '/media/'
 
-print()
-
 EMAIL_BACKEND=os.getenv('BACKEND')
 EMAIL_HOST=os.getenv('HOST')
 EMAIL_PORT=os.getenv('PORT')
 EMAIL_USE_TLS=os.getenv('USE_TLS')
 EMAIL_HOST_USER=os.getenv('HOST_USER')
 EMAIL_HOST_PASSWORD=os.getenv('HOST_PASSWORD')
-
-print(EMAIL_BACKEND,EMAIL_HOST,EMAIL_PORT,EMAIL_USE_TLS,EMAIL_HOST_USER,EMAIL_HOST_PASSWORD)

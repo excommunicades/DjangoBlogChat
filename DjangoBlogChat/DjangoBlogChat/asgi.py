@@ -14,6 +14,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from chat import routing
 
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoBlogChat.settings')
 
 application = ProtocolTypeRouter({
