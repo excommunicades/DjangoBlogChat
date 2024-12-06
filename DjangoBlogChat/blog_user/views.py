@@ -145,13 +145,13 @@ class Login_User(generics.GenericAPIView):
 
                 if nickname_error_msg in ['User does not exist.', 'This field is required.']:
 
-                    return Response({'errors': {'nickname': nickname_error_msg}}, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response({'errors': {'nickname': nickname_error_msg}}, status=status.HTTP_404_NOT_FOUND)
 
             password_error = errors.get('password', [])
 
             if password_error and str(password_error[0]) == 'Wrong password.':
 
-                return Response({'errors': {'password': 'Wrong password.'}}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({'errors': {'password': 'Wrong password.'}}, status=status.HTTP_404_NOT_FOUND)
 
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         user_data = serializer.validated_data
