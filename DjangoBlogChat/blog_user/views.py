@@ -145,7 +145,7 @@ class Login_User(generics.GenericAPIView):
 
                 if nickname_error_msg in ['User does not exist.', 'This field is required.']:
 
-                    return Response({'errors': {'nickname': nickname_error_msg}}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({'errors': {'nickname': nickname_error_msg}}, status=status.HTTP_401_UNAUTHORIZED)
 
             password_error = errors.get('password', [])
 
@@ -157,7 +157,7 @@ class Login_User(generics.GenericAPIView):
         user_data = serializer.validated_data
 
         auth_service = AuthenticationService(user_data)
-        
+
         try:
 
             user, refresh_token, access_token = auth_service.execute()

@@ -173,6 +173,7 @@ class AuthorizationSerializer(serializers.Serializer):
 
         return attrs
 
+
 class LogoutResponseSerializer(serializers.Serializer):
 
     message = serializers.CharField(default='You don\'t need submit any data. Only <<refreshToken>> cookie')
