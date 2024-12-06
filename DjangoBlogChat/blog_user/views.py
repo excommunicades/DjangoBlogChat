@@ -197,7 +197,11 @@ class Login_User(generics.GenericAPIView):
 
 class Logout_User(generics.GenericAPIView):
 
-    '''Logoutes a user from his session'''
+    '''Logoutes a user from his session.
+
+        [Deletes refreshToken cookie]
+    
+    '''
 
     def post(self, request, *args, **kwargs):
 
