@@ -44,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 
-    'blog_user.middleware.ErrorHandlingMiddleware',
+    # 'blog_user.middleware.ErrorHandlingMiddleware',
 ]
 
 TEMPLATES = [

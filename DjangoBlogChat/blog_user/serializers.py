@@ -173,6 +173,10 @@ class AuthorizationSerializer(serializers.Serializer):
 
         return attrs
 
+class LogoutResponseSerializer(serializers.Serializer):
+
+    message = serializers.CharField(default='You don\'t need submit any data. Only <<refreshToken>> cookie')
+
 
 class RequestPasswordRecoverySerializer(serializers.Serializer):
 
@@ -244,3 +248,5 @@ class PasswordRecoverySerializer(serializers.Serializer):
             raise serializers.ValidationError({"confirm_password": "Passwords must match."})
 
         return attrs
+
+

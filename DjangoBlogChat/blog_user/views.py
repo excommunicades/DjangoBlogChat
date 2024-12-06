@@ -14,6 +14,7 @@ from blog_user.serializers import (
     RegistrationConfirmSerializer,
     RequestPasswordRecoverySerializer,
     PasswordRecoverySerializer,
+    LogoutResponseSerializer
     )
 
 from blog_user.utils import (
@@ -202,6 +203,8 @@ class Logout_User(generics.GenericAPIView):
         [Deletes refreshToken cookie]
     
     '''
+
+    serializer_class = LogoutResponseSerializer
 
     def post(self, request, *args, **kwargs):
 
