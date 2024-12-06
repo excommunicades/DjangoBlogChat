@@ -195,6 +195,23 @@ class Login_User(generics.GenericAPIView):
 
             return Response({'errors': {'error': str(e)}}, status=status.HTTP_401_UNAUTHORIZED)
 
+class Logout_User(generics.GenericAPIView):
+
+    '''Logoutes a user from his session'''
+
+    def post(self, request, *args, **kwargs):
+
+        response = Response({
+            "message": "User logget out successfully.",
+        }, status=status.HTTP_200_OK)
+
+        response.delete_cookie(
+                        'refreshToken',
+                        path='/',
+                        samesite='Lax')
+
+        return response
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -219,6 +236,7 @@ def refresh_token_view(request):
     except Exception as e:
 
         return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class Request_Password_Recovery(generics.GenericAPIView):
 
