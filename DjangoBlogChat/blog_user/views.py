@@ -1,6 +1,5 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -16,7 +15,6 @@ from blog_user.serializers import (
     PasswordRecoverySerializer,
     LogoutResponseSerializer
     )
-
 from blog_user.utils import (
     RegisterUser,
     RegistrationConfirmationService,
@@ -25,9 +23,6 @@ from blog_user.utils import (
     PasswordRecoveryService,
     set_tokens_in_cookies,
 )
-
-
-
 from blog_user.models import BlogUser
 
 
@@ -201,7 +196,6 @@ class Logout_User(generics.GenericAPIView):
     '''Logoutes a user from his session.
 
         [Deletes refreshToken cookie]
-    
     '''
 
     serializer_class = LogoutResponseSerializer
