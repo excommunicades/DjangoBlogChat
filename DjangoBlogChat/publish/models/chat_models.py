@@ -10,7 +10,6 @@ class ChatRoom(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-
     def __str__(self):
 
         return f'Chat beetween {self.user1.nickname} and {self.user2.nickname}'
