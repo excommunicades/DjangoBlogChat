@@ -1,0 +1,1 @@
+uvicorn DjangoBlogChat.asgi:application --reload
