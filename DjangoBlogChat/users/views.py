@@ -16,8 +16,6 @@ class User_List(ListAPIView):
 
     '''Returns a list of users'''
 
-    # queryset = BlogUser.objects.all()
-
     serializer_class = UserListSerializer
 
     def get_queryset(self):
@@ -33,6 +31,8 @@ class User_List(ListAPIView):
         return user_pagination(page, page_size)
 
 class User_Data(RetrieveAPIView):
+
+    '''Retrieve user data by user id'''
 
     queryset = BlogUser.objects.all()
 
