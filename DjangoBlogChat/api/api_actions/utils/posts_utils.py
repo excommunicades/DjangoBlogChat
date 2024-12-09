@@ -59,8 +59,6 @@ def delete_post(self, request, object):
 
 def post_paginator(page, page_size):
 
-    page_size = 3
-
     if page:
 
         page_number = int(page)
@@ -84,5 +82,5 @@ def post_paginator(page, page_size):
     else:
 
         queryset = Posts.objects.all()[0:page_size]
-    print(queryset)
+
     return queryset
