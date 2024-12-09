@@ -20,6 +20,6 @@ def user_pagination(page, page_size):
             queryset = BlogUser.objects.all()[page_number:page_size]
     else:
 
-        queryset = BlogUser.objects.all()
+        queryset = BlogUser.objects.all()[0:page_size]
 
     return queryset
