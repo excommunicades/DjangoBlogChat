@@ -7,6 +7,10 @@ from channels.layers import get_channel_layer
 
 from django.core.cache import cache
 
+from publish.models.chat_models import (
+    ChatRoom,
+    ChatMessages,
+)
 
 class PublicConsumer(AsyncWebsocketConsumer):
 
@@ -230,6 +234,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         self.room_group_name = room_name
 
+        if ChatRoom.objects.filter(room_name)
 
         try:
 
