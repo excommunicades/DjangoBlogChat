@@ -8,10 +8,10 @@ connected_users = {}
 class CommunityConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
-        # Извлекаем query параметры из URL
+
         query_params = dict(param.split('=') for param in self.scope['query_string'].decode().split('&'))
         
-        # Получаем userId из query параметра
+
         self.user_id = query_params.get('userId')
 
         if not self.user_id:
