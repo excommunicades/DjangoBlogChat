@@ -4,26 +4,28 @@ from blog_user.models import BlogUser
 
 
 class ChatRoom(models.Model):
+    
+    name = models.CharField(max_length=100)
 
-    name = models.CharField()
+    users = models.ManyToManyField(BlogUser, related_name='chat_rooms')
 
-    user1 = models.ForeignKey(BlogUser, related_name='user1', on_delete=models.CASCADE)
-
-    user2 = models.ForeignKey(BlogUser, related_name='user2', on_delete=models.CASCADE)
-
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        return self.name
 
-        return f'Chat beetween {self.user1.nickname} and {self.user2.nickname}'
 
 
-class ChatMessages(models.Model):
 
-    owner = models.ForeignKey(BlogUser, on_delete=models.CASCADE)
+class Message(models.Model):
 
-    chat_room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
+    user = models.ForeignKey(BlogUser, on_delete=models.CASCADE)
 
-    message = models.TextField(blank=True, null=True)
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    content = models.TextField()
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f'{self.user.username}: {self.content[:30]}'

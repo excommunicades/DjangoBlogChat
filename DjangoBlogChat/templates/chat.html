@@ -7,34 +7,57 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
             height: 100vh;
+            justify-content: center;
+            background-color: #f4f4f4;
+        }
+
+        #chat-container {
+            width: 80%;
+            max-width: 600px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
         }
 
         #messages {
-            flex: 1;
-            overflow-y: auto;
+            flex-grow: 1;
+            overflow-y: scroll;
             padding: 10px;
-            background-color: #f0f0f0;
-            margin-bottom: 10px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #fff;
         }
 
         #message-input {
+            width: 80%;
             padding: 10px;
-            font-size: 14px;
-            width: calc(100% - 22px);
-            margin-bottom: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
 
         #send-button {
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 10px 15px;
+            border: none;
             background-color: #4CAF50;
             color: white;
-            border: none;
+            border-radius: 5px;
             cursor: pointer;
         }
 
@@ -42,78 +65,121 @@
             background-color: #45a049;
         }
 
-        .message {
-            margin-bottom: 10px;
+        #active-users-container {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: white;
         }
 
-        .message .sender {
-            font-weight: bold;
+        #active-users {
+            list-style-type: none;
+            padding: 0;
         }
 
-        .message .content {
-            margin-left: 10px;
+        #active-users li {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #e9e9e9;
+            border-radius: 5px;
+        }
+
+        #active-users li.online {
+            background-color: #d1ffd6;
         }
     </style>
 </head>
 <body>
-    <div id="messages"></div>
 
-    <input type="text" id="message-input" placeholder="Введите сообщение...">
-    <button id="send-button">Отправить</button>
+    <h1>Чат: {{ room_name }}</h1>
+
+    <div id="chat-container">
+        <div id="messages">
+            <!-- Сообщения чата будут отображаться здесь -->
+        </div>
+        <div id="input-container">
+            <input type="text" id="message-input" placeholder="Введите сообщение" />
+            <button id="send-button">Отправить</button>
+        </div>
+    </div>
+
+    <div id="active-users-container">
+        <h3>Активные пользователи:</h3>
+        <ul id="active-users">
+            <!-- Список активных пользователей будет вставляться сюда -->
+        </ul>
+    </div>
 
     <script>
-        const user1 = "1";  // ID первого пользователя (здесь просто пример)
-        const user2 = "2";  // ID второго пользователя (здесь просто пример)
+        const roomName = "goga";  // Передаем имя комнаты через Django-шаблон
+        const nickname = "nick";  // Никнейм пользователя
 
-        // Строка подключения к WebSocket
-        const roomName = `chat_${Math.min(user1, user2)}_${Math.max(user1, user2)}`;
-        const chatSocket = new WebSocket(
-            `ws://${window.location.host}/ws/chat/${user1}/${user2}/`
-        );
+        const ws = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
 
-        // Отправка сообщения
-        document.getElementById('send-button').addEventListener('click', function () {
+        // Обработчик для получения сообщений от сервера
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'active_users') {
+                updateActiveUsers(data.users);  // Обновляем список активных пользователей
+            } else if (data.type === 'chat_message') {
+                displayMessage(data.nickname, data.message);  // Отображаем новое сообщение
+            }
+        };
+
+        // Отправить сообщение
+        document.getElementById('send-button').addEventListener('click', function() {
             const messageInput = document.getElementById('message-input');
-            const message = messageInput.value;
+            const message = messageInput.value.trim();
 
             if (message) {
-                chatSocket.send(JSON.stringify({
-                    'message': message
+                ws.send(JSON.stringify({
+                    'message': message,
+                    'nickname': nickname,
+                    'room': roomName
                 }));
-                messageInput.value = '';  // Очистка поля ввода после отправки
+
+                messageInput.value = '';  // Очистить поле ввода после отправки
             }
         });
 
-        // Обработка входящих сообщений
-        chatSocket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-            const message = data['message'];
-            const sender = data['sender'];
+        // Отображение сообщения в чате
+        function displayMessage(nickname, message) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message');
+            messageContainer.innerHTML = `<strong>${nickname}:</strong> ${message}`;
+            document.getElementById('messages').appendChild(messageContainer);
+            scrollToBottom();  // Прокрутка к последнему сообщению
+        }
 
+        // Обновление списка активных пользователей
+        function updateActiveUsers(users) {
+            const userList = document.getElementById('active-users');
+            userList.innerHTML = '';  // Очищаем список пользователей
+
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.classList.add('online');
+                li.textContent = user;  // Добавляем никнейм пользователя
+                userList.appendChild(li);
+            });
+        }
+
+        // Прокрутка к последнему сообщению
+        function scrollToBottom() {
             const messagesDiv = document.getElementById('messages');
-
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-
-            messageElement.innerHTML = `
-                <span class="sender">${sender}:</span>
-                <span class="content">${message}</span>
-            `;
-
-            messagesDiv.appendChild(messageElement);
-
-            // Прокрутка вниз при получении нового сообщения
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        };
+        }
 
-        // Обработка ошибок WebSocket
-        chatSocket.onclose = function (e) {
-            console.error('WebSocket закрыт:', e);
-        };
-
-        // Пример отправки сообщений на сервер
-        chatSocket.onopen = function () {
-            console.log('WebSocket соединение установлено.');
+        // Инициализация WebSocket и отправка при первом подключении
+        ws.onopen = function() {
+            ws.send(JSON.stringify({
+                'nickname': nickname,
+                'room': roomName
+            }));
         };
     </script>
 </body>

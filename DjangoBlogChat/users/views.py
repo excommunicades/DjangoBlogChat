@@ -8,7 +8,7 @@ from users.serializers import (
     UserDataSerializer
 )
 
-from users.utlis import (
+from users.utils.views_utils import (
     user_pagination
 )
 

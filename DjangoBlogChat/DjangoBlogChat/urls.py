@@ -30,6 +30,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('blog_user.urls')),
     path('api/', include('api.settings.urls')),
+    # path('chat/', include('project_websockets.urls')),
     path('profile/', include('user_profile.urls')),
     path('users/', include('users.urls')),
 
