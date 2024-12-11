@@ -5,4 +5,6 @@ from websocket.consumers import (
 
 websocket_urlpatterns=[
     path('ws/community', CommunityConsumer.as_asgi()),
+    path('ws/chat/<str:chat_name>', CommunityConsumer.as_asgi()),
+
 ]

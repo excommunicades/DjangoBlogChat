@@ -3,43 +3,49 @@ import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-connected_users = []
-print(connected_users)
+connected_users = {}
 
 class CommunityConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
 
-        self.username = self.scope.get('user', {}).get('username', 'Uknown User')
+        query_params = dict(param.split('=') for param in self.scope['query_string'].decode().split('&'))
 
-        connected_users.append(self)
+        self.user_id = query_params.get('userId')
 
-        for user in connected_users:
-                if user != self:
-                    await user.send(text_data=json.dumps({
-                        'message': f'{self.username} connected. Summary connections: {len(connected_users)}'
-                    }))
-                await user.send(text_data=json.dumps({
-                    'message': f'{self.username} connected. Summary connections: {len(connected_users)}'
-                }))
+        if not self.user_id:
+            await self.close()
+            return
 
-        await  self.accept()
+        self.user_id = int(self.user_id)
 
-    async def disconnect(self):
+        connected_users[self.user_id] = self
 
-        connected_users.remove(self)
+        await self.accept()
 
-        for user in connected_users:
+        for user_id, user in connected_users.items():
+            print('User connected:', self.user_id)
+
             await user.send(text_data=json.dumps({
-                'message': f'{self.username} disconnected. Summary connections: {len(connected_users)}'
+                'message': f'User connected: {self.user_id}'
+            }))
+
+    async def disconnect(self, close_code):
+
+        if self.user_id in connected_users:
+            del connected_users[self.user_id]
+
+        for user_id, user in connected_users.items():
+            print(f'User disconnected:', self.user_id)
+            await user.send(text_data=json.dumps({
+                'message': f'User disconnected: {self.user_id}'
             }))
 
     async def receive(self, text_data):
 
         message = json.loads(text_data).get('message', '')
 
-        for user in connected_users:
-            if user != self:
-                await user.send(text_data=json.dumps({
-                    'message': message
-                }))
+        for user_id, user in connected_users.items():
+            await user.send(text_data=json.dumps({
+                'message': f'User {self.user_id}: {message}'
+            }))
