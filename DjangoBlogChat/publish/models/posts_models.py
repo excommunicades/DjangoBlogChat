@@ -2,8 +2,6 @@ import os
 
 from django.db import models
 
-# 'blog_user.BlogUser'
-# upload_to=image_upload_function
 
 def image_upload_function(instance, filename):
 
@@ -72,4 +70,4 @@ class PostReactions(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
-# TODO: choices, logic
+

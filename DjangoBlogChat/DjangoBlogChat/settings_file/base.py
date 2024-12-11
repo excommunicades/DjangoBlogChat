@@ -15,7 +15,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+print('sdf')
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'project_websockets',
     'blog_user',
     'publish',
     'api',

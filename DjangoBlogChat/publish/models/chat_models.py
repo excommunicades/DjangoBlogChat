@@ -1,4 +1,5 @@
 from django.db import models
+
 from blog_user.models import BlogUser
 
 
@@ -24,7 +25,5 @@ class ChatMessages(models.Model):
     chat_room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
 
     message = models.TextField(blank=True, null=True)
-
-    # media = models.FileField(upload_to='chat_media/', blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
