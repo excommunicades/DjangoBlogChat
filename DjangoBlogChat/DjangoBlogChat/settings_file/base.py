@@ -15,7 +15,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-print('sdf')
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
