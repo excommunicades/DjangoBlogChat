@@ -3,109 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community Chat</title>
+    <title>Chat Room</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        .messages {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
+        /* Простая стилизация чата */
+        #messages {
+            width: 100%;
             height: 300px;
             overflow-y: scroll;
-            margin-bottom: 20px;
-            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
         }
-        .message {
-            margin: 5px 0;
-            padding: 5px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-        }
-        input[type="text"] {
+        #message_input {
             width: 80%;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
         }
-        button {
+        #send_button {
             padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-
-    <h1>Community Chat</h1>
-
-    <div class="messages" id="messages"></div>
-
-    <input type="text" id="messageInput" placeholder="Type a message..." />
-    <button id="sendButton">Send</button>
+    <h2>Chat Room: <span id="chat_name">Loading...</span></h2>
+    <div id="messages"></div>
+    <input type="text" id="message_input" placeholder="Type your message here">
+    <button id="send_button">Send</button>
 
     <script>
-        // Пример userId, передаем 25
-        const userId = 25;
+        const chatName = "general";  // Имя чата, можно сделать динамическим
+        const userId = 1;  // Передаем userId в WebSocket через query параметр
 
-        // Создаем подключение WebSocket с передачей userId в URL
-        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/community?userId=${userId}`);
+        // Формируем URL для подключения WebSocket с параметром userId
+        const socketUrl = `ws://127.0.0.1:8000/ws/chat/${chatName}?userId=${userId}`;
+        const chatNameElem = document.getElementById("chat_name");
+        chatNameElem.textContent = chatName;
 
-        // Элементы для отображения сообщений и отправки
-        const messagesDiv = document.getElementById('messages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
+        const socket = new WebSocket(socketUrl);
 
-        // Обработчик открытия соединения
-        socket.onopen = function() {
-            console.log('Connected to WebSocket server');
+        // Ожидаем, что подключение будет установлено
+        socket.onopen = function(event) {
+            console.log('Connected to WebSocket');
         };
 
-        // Обработчик получения сообщений
+        // Обрабатываем входящие сообщения от сервера
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
             const message = data.message;
 
-            // Добавляем новое сообщение в чат
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-            messageElement.textContent = message;
-            messagesDiv.appendChild(messageElement);
-
-            // Прокручиваем чат до самого низа
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            // Отображаем полученное сообщение
+            const messagesElem = document.getElementById("messages");
+            const messageElem = document.createElement("div");
+            messageElem.textContent = message;
+            messagesElem.appendChild(messageElem);
+            messagesElem.scrollTop = messagesElem.scrollHeight; // Прокручиваем вниз
         };
 
-        // Обработчик закрытия соединения
-        socket.onclose = function() {
-            console.log('Disconnected from WebSocket server');
+        // Обрабатываем ошибки подключения
+        socket.onerror = function(event) {
+            console.error("WebSocket error:", event);
         };
 
-        // Функция отправки сообщения
-        sendButton.onclick = function() {
-            const message = messageInput.value.trim();
-            if (message !== '') {
+        // Обрабатываем закрытие соединения
+        socket.onclose = function(event) {
+            console.log("Disconnected from WebSocket");
+        };
+
+        // Отправка сообщения
+        document.getElementById("send_button").onclick = function() {
+            const messageInput = document.getElementById("message_input");
+            const message = messageInput.value;
+
+            if (message) {
+                // Отправляем сообщение через WebSocket
                 socket.send(JSON.stringify({ message: message }));
-                messageInput.value = '';  // Очищаем поле ввода
+
+                // Очищаем поле ввода
+                messageInput.value = "";
             }
         };
-
-        // Дополнительное поведение при нажатии Enter
-        messageInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendButton.click();
-            }
-        });
     </script>
-
 </body>
 </html>
