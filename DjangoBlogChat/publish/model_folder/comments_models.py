@@ -1,6 +1,6 @@
 from django.db import models
 
-from publish.models.posts_models import Posts
+from publish.model_folder.posts_models import Posts
 
 
 class Comments(models.Model):

@@ -17,7 +17,7 @@ from api.api_actions.utils.posts_utils import (
     post_paginator
 )
 
-from publish.models.posts_models import Posts, PostReactions
+from publish.models import Posts, PostReactions
 
 class PostListCreate(generics.ListCreateAPIView):
 
