@@ -5,6 +5,19 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 connected_users = {}
 
+@database_sync_to_async
+def get_user_by_id(user_id):
+
+    from blog_user.models import BlogUser
+
+    try:
+
+        return BlogUser.objects.get(id=user_id)
+
+    except BlogUser.DoesNotExist:
+
+        return None
+
 class CommunityConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
@@ -31,15 +44,26 @@ class CommunityConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        user_ids = ",".join(str(user_id) for user_id in connected_users.keys())
+
+
+        for user_id, user in connected_users.items():
+            print(f'User connected: {self.user_id}, All users: {user_ids}')
+            await user.send(text_data=json.dumps({
+                'message': f'User connected: {self.user_id}. All users: {user_ids}'
+            }))
+
     async def disconnect(self, close_code):
 
         if self.user_id in connected_users:
             del connected_users[self.user_id]
 
+        user_ids = ",".join(str(user_id) for user_id in connected_users.keys())
+
         for user_id, user in connected_users.items():
-            print(f'User disconnected:', self.user_id)
+            print(f'User disconnected: {self.user_id}, All users: {user_ids}')
             await user.send(text_data=json.dumps({
-                'message': f'User disconnected: {self.user_id}'
+                'message': f'User disconnected: {self.user_id}. All users: {user_ids}'
             }))
 
     async def receive(self, text_data):
@@ -93,11 +117,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
 
         text_data_json = json.loads(text_data)
-
-
         message = text_data_json.get('message')
 
         if message:
+
+            user = await get_user_by_id(int(self.user_id))
+
+            if user:
+                print('user is est', user)
+                await self.save_message(user, self.chat_room, message)
 
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -152,10 +180,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
     @database_sync_to_async
-    def get_user_by_id(self, user_id):
-        from blog_user.models import BlogUser
-        try:
-            user = BlogUser.objects.get(id=user_id)
-            return user
-        except BlogUser.DoesNotExist:
-            return None
+    def save_message(self, user, chat_room, message):
+
+        from publish.models import Message
+
+        Message.objects.create(
+            user=user,
+            room=chat_room,
+            content=message,
+        )

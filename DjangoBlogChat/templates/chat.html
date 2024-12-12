@@ -34,7 +34,7 @@
         const userId = 1;  // Передаем userId в WebSocket через query параметр
 
         // Формируем URL для подключения WebSocket с параметром userId
-        const socketUrl = `ws://127.0.0.1:8000/ws/chat/${chatName}?userId=${userId}`;
+        const socketUrl = `ws://127.0.0.1:8000/ws/chat/${chatName}?userId=${userId}`;  //         const socketUrl = `ws://127.0.0.1:8000/ws/chat/${chatName}?userId=${userId}`;
         const chatNameElem = document.getElementById("chat_name");
         chatNameElem.textContent = chatName;
 
