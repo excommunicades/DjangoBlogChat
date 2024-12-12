@@ -27,7 +27,7 @@ class CommunityConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
 
-        connected_users[self] = self.user_id
+        connected_users[self.user_id] = self
 
         await self.accept()
 
