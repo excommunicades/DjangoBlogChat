@@ -20,18 +20,14 @@ class CommunityConsumer(AsyncWebsocketConsumer):
 
         self.user_id = int(self.user_id)
 
-        self.chat_name = self.scope['url_route']['kwargs']['chat_name']
-
-        self.room_group_name = f'chat_{self.chat_name}'
-
-        self.chat_room = await self.create_chat()
+        self.room_group_name = f'community'
 
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name,
         )
 
-        await self.add_user_to_chat()
+        connected_users[self] = self.user_id
 
         await self.accept()
 
