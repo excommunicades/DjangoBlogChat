@@ -39,12 +39,14 @@ urlpatterns = [
                         template_name='docs.html',
                         extra_context={'schema_url':'api_schema'}
                         ), name='swagger-ui'),
-    path('community', TemplateView.as_view(
-                        template_name='community.html'), name='user_chat'),
-    path('community2', TemplateView.as_view(
-                        template_name='community2.html'), name='user_chat'),
-    path('chat', TemplateView.as_view(
-                        template_name='chat.html'), name='user_chat'),
-    path('chat2', TemplateView.as_view(
-                        template_name='chat2.html'), name='user_chat'),
+    path('new', TemplateView.as_view(
+                        template_name='new.html'), name='user_chat'),
+    path('new2', TemplateView.as_view(
+                            template_name='new2.html'), name='user_chat'),
+    path('hub', TemplateView.as_view(
+                            template_name='hub.html'), name='user_chat'),
+    path('hub2', TemplateView.as_view(
+                            template_name='hub2.html'), name='user_chat'),
+    path('hub3', TemplateView.as_view(
+                            template_name='hub3.html'), name='user_chat'),
 ]

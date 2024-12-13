@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        #chat-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #message-list {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        #message-list li {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #e1e1e1;
+        }
+        #message-list .my-message {
+            background-color: #d1ffd6;
+            text-align: right;
+        }
+        #message-input {
+            width: 80%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #send-button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #send-button:disabled {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-box">
+    <h2>Chat with User</h2>
+
+    <!-- Messages area -->
+    <ul id="message-list">
+        <!-- Messages will be inserted here dynamically -->
+    </ul>
+
+    <!-- Message input form -->
+    <input type="text" id="message-input" placeholder="Type your message...">
+    <button id="send-button" disabled>Send</button>
+</div>
+
+<script>
+    const userId = 3; // Example user ID (this would typically be dynamically set)
+    const wsUrl = `ws://127.0.0.1:8000/ws/community?userId=${userId}`;
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const messageList = document.getElementById('message-list');
+
+    let socket = new WebSocket(wsUrl);
+
+    // WebSocket connection open handler
+    socket.onopen = function(event) {
+        console.log('Connected to WebSocket!');
+        sendButton.disabled = false;
+    };
+
+    // WebSocket message handler
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.type === 'chat_message') {
+            const messageElement = document.createElement('li');
+            messageElement.textContent = `User ${data.user_id}: ${data.message}`;
+            if (data.user_id === userId) {
+                messageElement.classList.add('my-message'); // Add style for the sender's own messages
+            }
+            messageList.appendChild(messageElement);
+            messageList.scrollTop = messageList.scrollHeight; // Scroll to the latest message
+        }
+    };
+
+    // WebSocket error handler
+    socket.onerror = function(event) {
+        console.error('WebSocket error:', event);
+    };
+
+    // WebSocket close handler
+    socket.onclose = function(event) {
+        console.log('WebSocket connection closed:', event);
+    };
+
+    // Send message function
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            const participants = '3,2'; // Example: '1,2' means the message is sent to user 2 by user 1
+            const sender = userId;
+
+            const messageData = {
+                type: 'chat_message',
+                participants: participants,
+                message: message,
+                sender: sender
+            };
+
+            socket.send(JSON.stringify(messageData));
+
+            messageInput.value = '';
+        }
+    }
+
+    // Attach event listeners
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>
