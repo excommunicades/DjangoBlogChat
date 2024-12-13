@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import hashlib
 
@@ -5,6 +6,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from django.db import IntegrityError
+from django.db.models import Max
 
 connected_users = {}
 
@@ -20,273 +22,6 @@ def get_user_by_id(user_id):
     except BlogUser.DoesNotExist:
 
         return None
-
-# class CommunityConsumer(AsyncWebsocketConsumer):
-
-#     async def connect(self):
-
-#         query_params = dict(param.split('=') for param in self.scope['query_string'].decode().split('&'))
-        
-
-#         self.user_id = query_params.get('userId')
-
-#         if not self.user_id:
-#             await self.close()
-#             return
-
-#         self.user_id = int(self.user_id)
-
-#         self.room_group_name = f'community'
-
-#         await self.channel_layer.group_add(
-#             self.room_group_name,
-#             self.channel_name,
-#         )
-
-#         connected_users[self.user_id] = self
-
-#         await self.accept()
-
-#         user_ids = ",".join(str(user_id) for user_id in connected_users.keys())
-
-
-#         for user_id, user in connected_users.items():
-#             print(f'User connected: {self.user_id}, All users: {user_ids}')
-#             await user.send(text_data=json.dumps({
-#                 'message': f'User connected: {self.user_id}. All users: {user_ids}'
-#             }))
-
-#     async def disconnect(self, close_code):
-
-#         if self.user_id in connected_users:
-#             del connected_users[self.user_id]
-
-#         user_ids = ",".join(str(user_id) for user_id in connected_users.keys())
-
-#         for user_id, user in connected_users.items():
-#             print(f'User disconnected: {self.user_id}, All users: {user_ids}')
-#             await user.send(text_data=json.dumps({
-#                 'message': f'User disconnected: {self.user_id}. All users: {user_ids}'
-#             }))
-
-#     async def receive(self, text_data):
-
-#         message = json.loads(text_data).get('message', '')
-
-#         for user_id, user in connected_users.items():
-#             await user.send(text_data=json.dumps({
-#                 'message': f'User {self.user_id}: {message}'
-#             }))
-
-
-# class ChatConsumer(AsyncWebsocketConsumer):
-
-#     async def connect(self):
-
-#         query_params = dict(param.split('=') for param in self.scope['query_string'].decode().split('&'))
-        
-
-#         self.user_id = query_params.get('userId')
-
-#         if not self.user_id:
-#             await self.close()
-#             return
-
-
-#         self.chat_name = self.scope['url_route']['kwargs']['chat_name']
-
-#         self.room_group_name = f'chat_{self.chat_name}'
-
-#         self.chat_room = await self.create_chat()
-
-#         await self.channel_layer.group_add(
-#             self.room_group_name,
-#             self.channel_name,
-#         )
-
-#         await self.add_user_to_chat()
-
-#         await self.accept()
-
-#     async def disconnect(self, close_code):
-
-#         await self.remove_user_from_chat()
-
-#         await self.channel_layer.group_discard(
-#             self.room_group_name,
-#             self.channel_name,
-#         )
-
-#     async def receive(self, text_data):
-
-#         text_data_json = json.loads(text_data)
-#         message = text_data_json.get('message')
-
-#         if message:
-
-#             user = await get_user_by_id(int(self.user_id))
-
-#             if user:
-#                 print('user is est', user)
-#                 await self.save_message(user, self.chat_room, message)
-
-#             await self.channel_layer.group_send(
-#                 self.room_group_name,
-#                 {
-#                     'type': 'chat_message',
-#                     'message': message
-#                 }
-#             )
-
-#     async def chat_message(self, event):
-
-#         message = event['message']
-
-
-#         await self.send(text_data=json.dumps({
-#             'message': message
-#         }))
-
-
-#     @database_sync_to_async
-#     def create_chat(self):
-#         from publish.models import ChatRoom
-#         try:
-
-#             chat = ChatRoom.objects.get(name=str(self.room_group_name))
-#         except ChatRoom.DoesNotExist:
-
-#             chat = ChatRoom.objects.create(
-#                 name=str(self.room_group_name),
-#             )
-#         return chat
-
-
-#     @database_sync_to_async
-#     def add_user_to_chat(self):
-#         chat_room = self.chat_room
-#         user = int(self.user_id)
-
-#         if user and user not in chat_room.users.all():
-
-#             chat_room.users.add(user)
-
-
-#     @database_sync_to_async
-#     def remove_user_from_chat(self):
-#         chat_room = self.chat_room
-#         user = int(self.user_id)
-
-#         if user and user in chat_room.users.all():
-
-#             chat_room.users.remove(user)
-
-
-#     @database_sync_to_async
-#     def save_message(self, user, chat_room, message):
-
-#         from publish.models import Message
-
-#         Message.objects.create(
-#             user=user,
-#             room=chat_room,
-#             content=message,
-#         )
-
-
-# class CommunityConsumer(AsyncWebsocketConsumer):
-
-#     async def connect(self):
-#         # Отримуємо параметри запиту, зокрема userId
-#         query_params = dict(param.split('=') for param in self.scope['query_string'].decode().split('&'))
-#         self.user_id = query_params.get('userId')
-
-#         if not self.user_id:
-#             await self.close()
-#             return
-
-#         self.user_id = int(self.user_id)
-#         self.current_chat_name = None  # Поточний активний чат
-#         self.room_group_name = f'community'  # Основна група для оновлення статусу онлайн/офлайн
-
-#         # Додаємо користувача до групи "community"
-#         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-#         connected_users[self.user_id] = self  # Додаємо користувача до словника активних з'єднань
-
-#         await self.accept()
-
-#         await self.broadcast_user_status('online')
-
-#     async def disconnect(self, close_code):
-#         # Видаляємо користувача з підключених користувачів
-#         if self.user_id in connected_users:
-#             del connected_users[self.user_id]
-
-#         # Видаляємо користувача з поточного чату
-#         if self.current_chat_name:
-#             await self.channel_layer.group_discard(f'chat_{self.current_chat_name}', self.channel_name)
-
-#         # Видаляємо користувача з групи "community"
-#         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-
-#         await self.broadcast_user_status('offline')
-
-#     async def receive(self, text_data):
-#         data = json.loads(text_data)
-#         action = data.get('action')
-
-#         if action == 'switch_chat':
-#             new_chat_name = data.get('chat_name')
-
-#             # Відключаємо користувача від попередньої групи чату
-#             if self.current_chat_name:
-#                 await self.channel_layer.group_discard(f'chat_{self.current_chat_name}', self.channel_name)
-
-#             self.current_chat_name = new_chat_name
-
-#             # Додаємо користувача до нової групи чату
-#             await self.channel_layer.group_add(f'chat_{new_chat_name}', self.channel_name)
-
-#         elif action == 'send_message':
-#             message = data.get('message')
-#             await self.channel_layer.group_send(
-#                 f'chat_{self.current_chat_name}',
-#                 {
-#                     'type': 'chat_message',
-#                     'user_id': self.user_id,
-#                     'message': message
-#                 }
-#             )
-
-#         elif action == 'user_active':
-#             await self.broadcast_user_status('active')
-
-#         elif action == 'user_idle':
-#             await self.broadcast_user_status('idle')
-
-#     async def chat_message(self, event):
-#         """
-#         Відправляємо повідомлення всім користувачам у поточному чаті
-#         """
-#         await self.send(text_data=json.dumps({
-#             'type': 'chat_message',
-#             'user_id': event['user_id'],
-#             'message': event['message']
-#         }))
-
-#     async def broadcast_user_status(self, status):
-#         """
-#         Відправляємо оновлення статусу користувача у спільну групу (online, offline, idle, active)
-#         """
-#         user_ids = list(connected_users.keys())
-#         for user_id, user in connected_users.items():
-#             await user.send(text_data=json.dumps({
-#                 'type': 'user_status',
-#                 'user_id': self.user_id,
-#                 'status': status,
-#                 'online_users': user_ids  # Надсилаємо список всіх активних користувачів
-#             }))
-
 
 
 class CommunityConsumer(AsyncWebsocketConsumer):
@@ -324,6 +59,7 @@ class CommunityConsumer(AsyncWebsocketConsumer):
 
             participants = data.get('participants').split(',')
             sender_id = int(data.get('sender'))
+            sender_name = str(data.get('sender_name'))
             message = data.get('message')
 
             participants_ids = list(map(int, participants))
@@ -345,14 +81,34 @@ class CommunityConsumer(AsyncWebsocketConsumer):
                 if participant_channel:
                     await participant_channel.send(text_data=json.dumps({
                         'type': 'chat_message',
-                        'user_id': sender_id,
-                        'message': message
+                        'sender_id': sender_id,
+                        'username': sender_name,
+                        'message': message,
                     }))
 
             user = await get_user_by_id(int(self.user_id))
 
             await self.save_message_to_chat(chat_hash, user, message)
 
+        elif action == 'get_chat_list':
+
+            user_chats = await self.get_user_chats(self.user_id)
+
+            await self.send(text_data=json.dumps({
+                'type': 'chat_list',
+                'chats': user_chats
+            }))
+
+        elif action == 'get_chat_messages':
+
+            chat_id = data.get('chat_id')
+
+            messages = await self.get_chat_messages(chat_id)
+
+            await self.send(text_data=json.dumps({
+                'type': 'chat_messages',
+                'messages': messages
+            }))
 
     async def chat_message(self, event):
 
@@ -388,3 +144,60 @@ class CommunityConsumer(AsyncWebsocketConsumer):
             room=chat,
             content=message
         )
+
+    # @database_sync_to_async
+    # def get_user_chats(self, user_id):
+
+    #     from publish.models import ChatRoom
+
+    #     chats = ChatRoom.objects.filter(users__id=user_id)
+
+    #     chat_list = [{'chat_name': chat.name, 'chat_id': chat.id} for chat in chats]
+
+    #     return chat_list
+
+    @database_sync_to_async
+    def get_user_chats(self, user_id):
+
+        from publish.models import ChatRoom
+        print(user_id)
+        chats = ChatRoom.objects.filter(users__id=user_id)
+        print('chats:', chats)
+        chats = chats.annotate(last_message_time=Max('messages__timestamp'))
+
+        chats = chats.order_by('last_message_time')
+
+        chat_list = []
+
+        for chat in chats:
+
+            users_in_chat = chat.users.exclude(id=user_id)
+            
+            user_names = [user.username for user in users_in_chat]
+
+            chat_users = ', '.join(user_names)
+
+            last_message_time = chat.last_message_time.isoformat() if chat.last_message_time else None
+
+            chat_list.append({
+                'chat_users': chat_users,
+                'chat_id': chat.id,
+                'last_message_time': last_message_time
+            })
+            print('chat_lists:', chat_list)
+
+        return chat_list
+
+    @database_sync_to_async
+    def get_chat_messages(self, chat_id):
+
+        from publish.models import Message
+
+        messages = Message.objects.filter(room_id=chat_id).select_related('user').order_by('timestamp')
+
+        message_list = [{
+                'user_id': message.user.id,
+                'message': message.content,
+                'timestamp': message.timestamp.isoformat()} for message in messages]
+
+        return message_list

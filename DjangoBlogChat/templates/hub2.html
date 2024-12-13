@@ -11,13 +11,30 @@
             padding: 20px;
             background-color: #f7f7f7;
         }
-        #chat-box {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
+        #chat-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        #chat-list {
+            width: 30%;
+            margin-right: 20px;
+            list-style: none;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+        #chat-list li {
+            padding: 8px;
+            background-color: #f1f1f1;
+            margin: 5px 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #message-box {
+            width: 65%;
             padding: 10px;
-            border-radius: 8px;
+            background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
         #message-list {
             list-style: none;
@@ -27,9 +44,9 @@
             margin-bottom: 10px;
         }
         #message-list li {
-            margin: 10px 0;
             padding: 8px;
             border-radius: 4px;
+            margin: 10px 0;
             background-color: #e1e1e1;
         }
         #message-list .my-message {
@@ -57,17 +74,21 @@
 </head>
 <body>
 
-<div id="chat-box">
-    <h2>Chat with User</h2>
-
-    <!-- Messages area -->
-    <ul id="message-list">
-        <!-- Messages will be inserted here dynamically -->
+<div id="chat-container">
+    <!-- Chat list (chats user is part of) -->
+    <ul id="chat-list">
+        <!-- Chats will be inserted here dynamically -->
     </ul>
 
-    <!-- Message input form -->
-    <input type="text" id="message-input" placeholder="Type your message...">
-    <button id="send-button" disabled>Send</button>
+    <!-- Message box (chat messages and input) -->
+    <div id="message-box">
+        <h2> USER 2 Chat Messages</h2>
+        <ul id="message-list">
+            <!-- Messages will be inserted here dynamically -->
+        </ul>
+        <input type="text" id="message-input" placeholder="Type your message..." disabled>
+        <button id="send-button" disabled>Send</button>
+    </div>
 </div>
 
 <script>
@@ -76,26 +97,78 @@
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
     const messageList = document.getElementById('message-list');
+    const chatList = document.getElementById('chat-list');
 
     let socket = new WebSocket(wsUrl);
 
     // WebSocket connection open handler
     socket.onopen = function(event) {
         console.log('Connected to WebSocket!');
-        sendButton.disabled = false;
+        sendButton.disabled = true;
+
+        // Request chat list after connection is established
+        const requestChatList = {
+            type: 'get_chat_list'
+        };
+        socket.send(JSON.stringify(requestChatList));
     };
 
     // WebSocket message handler
     socket.onmessage = function(event) {
         const data = JSON.parse(event.data);
+
         if (data.type === 'chat_message') {
+            // Display incoming chat message
             const messageElement = document.createElement('li');
-            messageElement.textContent = `User ${data.user_id}: ${data.message}`;
+            messageElement.textContent = `${data.username}: ${data.message}`;
             if (data.user_id === userId) {
-                messageElement.classList.add('my-message'); // Add style for the sender's own messages
+                messageElement.classList.add('my-message'); // Style for own messages
             }
             messageList.appendChild(messageElement);
-            messageList.scrollTop = messageList.scrollHeight; // Scroll to the latest message
+            messageList.scrollTop = messageList.scrollHeight; // Scroll to latest message
+        } else if (data.type === 'chat_list') {
+            // Handle chat list response
+            chatList.innerHTML = ''; // Clear any previous chat list
+
+            // Populate chat list
+            if (data.chats && data.chats.length > 0) {
+                data.chats.forEach(chat => {
+                    const chatElement = document.createElement('li');
+                    chatElement.textContent = `Chat: ${chat.chat_name}`;
+                    chatElement.onclick = function() {
+                        // Load messages for the selected chat
+                        loadChatMessages(chat.chat_id);
+                    };
+                    chatList.appendChild(chatElement);
+                });
+            } else {
+                const noChatsElement = document.createElement('li');
+                noChatsElement.textContent = 'No chats available';
+                chatList.appendChild(noChatsElement);
+            }
+        } else if (data.type === 'chat_messages') {
+            // Handle messages of the selected chat
+            messageList.innerHTML = ''; // Clear existing messages
+
+            // Add messages to the list
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(message => {
+                    const messageElement = document.createElement('li');
+                    messageElement.textContent = `${message.username}: ${message.message}`;
+                    if (message.user_id === userId) {
+                        messageElement.classList.add('my-message');
+                    }
+                    messageList.appendChild(messageElement);
+                });
+            } else {
+                const noMessagesElement = document.createElement('li');
+                noMessagesElement.textContent = 'No messages available';
+                messageList.appendChild(noMessagesElement);
+            }
+
+            // Enable input and send button after loading messages
+            messageInput.disabled = false;
+            sendButton.disabled = false;
         }
     };
 
@@ -112,22 +185,39 @@
     // Send message function
     function sendMessage() {
         const message = messageInput.value.trim();
+        const chatId = currentChatId; // Use current chat ID when sending messages
         if (message) {
             const participants = '2,1'; // Example: '1,2' means the message is sent to user 2 by user 1
             const sender = userId;
+            const sender_name = 'user2';
             const messageData = {
                 type: 'chat_message',
                 participants: participants,
                 message: message,
-                sender: sender
+                sender: sender,
+                sender_name: sender_name,
+
             };
 
-            // Send message to the WebSocket server
+            // Send message to WebSocket server
             socket.send(JSON.stringify(messageData));
 
             // Clear input field after sending
             messageInput.value = '';
         }
+    }
+
+    // Function to load chat messages
+    function loadChatMessages(chatId) {
+        // Request chat messages from the server
+        const requestChatMessages = {
+            type: 'get_chat_messages',
+            chat_id: chatId
+        };
+        socket.send(JSON.stringify(requestChatMessages));
+
+        // Store current chat ID
+        currentChatId = chatId;
     }
 
     // Attach event listeners
@@ -137,6 +227,8 @@
             sendMessage();
         }
     });
+
+    let currentChatId = null; // Variable to store current chat ID
 </script>
 
 </body>
