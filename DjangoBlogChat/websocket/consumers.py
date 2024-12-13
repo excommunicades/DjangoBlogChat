@@ -1,4 +1,5 @@
 from datetime import datetime
+import asyncio
 import json
 import hashlib
 
@@ -110,6 +111,21 @@ class CommunityConsumer(AsyncWebsocketConsumer):
                 'messages': messages
             }))
 
+        elif action == 'delete_chat_message':
+
+            message_id = data.get('message_id')
+
+            await self.send_delete_message(message_id=message_id,user=self.user_id)
+
+        elif action == 'update_chat_message':
+
+            message_id = data.get('message_id')
+            
+            new_message_content = data.get('new_message_content')
+
+            await self.send_update_message(message_id=message_id, user=self.user_id, new_message_content=new_message_content)
+
+
     async def chat_message(self, event):
 
         await self.send(text_data=json.dumps({
@@ -145,27 +161,16 @@ class CommunityConsumer(AsyncWebsocketConsumer):
             content=message
         )
 
-    # @database_sync_to_async
-    # def get_user_chats(self, user_id):
-
-    #     from publish.models import ChatRoom
-
-    #     chats = ChatRoom.objects.filter(users__id=user_id)
-
-    #     chat_list = [{'chat_name': chat.name, 'chat_id': chat.id} for chat in chats]
-
-    #     return chat_list
-
     @database_sync_to_async
     def get_user_chats(self, user_id):
 
         from publish.models import ChatRoom
-        print(user_id)
+
         chats = ChatRoom.objects.filter(users__id=user_id)
-        print('chats:', chats)
+
         chats = chats.annotate(last_message_time=Max('messages__timestamp'))
 
-        chats = chats.order_by('last_message_time')
+        chats = chats.order_by('-last_message_time')
 
         chat_list = []
 
@@ -184,20 +189,98 @@ class CommunityConsumer(AsyncWebsocketConsumer):
                 'chat_id': chat.id,
                 'last_message_time': last_message_time
             })
-            print('chat_lists:', chat_list)
 
         return chat_list
+
 
     @database_sync_to_async
     def get_chat_messages(self, chat_id):
 
         from publish.models import Message
 
-        messages = Message.objects.filter(room_id=chat_id).select_related('user').order_by('timestamp')
+        messages = Message.objects.filter(room_id=chat_id).select_related('user').order_by('-timestamp')
 
         message_list = [{
+                'message_id': message.id,
                 'user_id': message.user.id,
+                'username': message.user.username,
                 'message': message.content,
                 'timestamp': message.timestamp.isoformat()} for message in messages]
 
         return message_list
+
+
+    @database_sync_to_async
+    def delete_message(self,message_id, user):
+
+        from publish.models import Message
+
+        message = Message.objects.filter(id=message_id).first()
+
+        if message and message.user.id == int(user):
+
+            chat = message.room
+            message.delete()
+
+            participants = chat.users.all()
+
+            participants_id_list = []
+
+            for participant in participants:
+
+                if connected_users.get(participant.id) is not None:
+
+                    participants_id_list.append(connected_users.get(participant.id))
+
+        return participants_id_list
+
+    async def send_delete_message(self, message_id, user):
+
+        participants_id_list = await self.delete_message(message_id, user)
+
+        for participant_channel in participants_id_list:
+
+            await participant_channel.send(text_data=json.dumps({
+                'type': 'message_deleted',
+                'message_id': message_id,
+            }))
+    
+
+
+    @database_sync_to_async
+    def update_message(self, message_id, user, new_message_content):
+
+        from publish.models import Message
+
+        message = Message.objects.filter(id=message_id).first()
+
+        if message and message.user.id == int(user):
+
+            message.content = new_message_content
+            message.save()
+
+            chat = message.room
+
+            participants = chat.users.all()
+
+            participants_id_list = []
+
+            for participant in participants:
+
+                if connected_users.get(participant.id) is not None:
+
+                    participants_id_list.append(connected_users.get(participant.id))
+
+        return participants_id_list
+
+    async def send_update_message(self, message_id, user, new_message_content):
+
+        participants_id_list = await self.update_message(message_id, user, new_message_content)
+
+        for participant_channel in participants_id_list:
+
+            await participant_channel.send(text_data=json.dumps({
+                'type': 'message_updated',
+                'message_id': message_id,
+                'new_content': new_message_content,
+            }))
