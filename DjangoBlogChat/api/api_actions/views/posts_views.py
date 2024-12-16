@@ -217,7 +217,6 @@ class SetReactionToPOST(generics.GenericAPIView):
                             if post_reaction.reaction == serializer.validated_data.get('reaction'):
 
                                 post_reaction.delete()
-                                print('deleted')
 
                                 return Response({"message": "reaction was successfully removed"}, status=status.HTTP_200_OK)
 
@@ -226,12 +225,10 @@ class SetReactionToPOST(generics.GenericAPIView):
                                 post_reaction.reaction = serializer.validated_data.get('reaction')
 
                                 post_reaction.save()
-                                print('updated')
                                 return Response({"message": "reaction was successfully changed"}, status=status.HTTP_200_OK)
                 else:
 
                     serializer.save(user=user)
-                    print('created')
 
                 return Response({"message": "reaction was successfully set"}, status=status.HTTP_200_OK)
 

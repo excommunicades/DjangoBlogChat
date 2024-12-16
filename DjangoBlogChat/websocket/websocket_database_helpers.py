@@ -17,7 +17,7 @@ def add_user_to_chat(chat_name, user):
     from publish.models import ChatRoom
 
     chat, created = ChatRoom.objects.get_or_create(name=chat_name)
-    print(user)
+
     if user is not None and user not in chat.users.values_list('id', flat=True):
         chat.users.add(user)
     return chat
