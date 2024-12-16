@@ -39,6 +39,21 @@ class CommunityConsumer(AsyncWebsocketConsumer):
 
             await CommunityAction.chat_message(data, self.user_id, connected_users)
 
+        elif action == 'message_status_read':
+
+            messages = data.get('messages').split(',')
+
+            for message_id in messages:
+
+                participants = await CommunityAction.set_status_read(message_id)
+
+                if participants:
+
+                    await participants.send(text_data=json.dumps({
+                            'type': 'message_status_read',
+                            'message_id': message_id,
+                        }))
+
         elif action == 'get_chat_list':
 
             result = await CommunityAction.get_chat_list(self.user_id)

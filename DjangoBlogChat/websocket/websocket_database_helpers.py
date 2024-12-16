@@ -30,6 +30,27 @@ def save_message_to_chat(chat_name, user, message):
     Message.objects.create(user=user, room=chat, content=message)
 
 @database_sync_to_async
+def set_message_status_read(message_id):
+
+    from publish.models import Message
+    from websocket.consumers import connected_users    
+
+
+    message = Message.objects.filter(id=int(message_id)).first()
+
+    if message:
+        
+        message.status = 'read'
+
+        message.save()
+
+        participants = message.room.users.all()
+
+        return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+
+    return []
+
+@database_sync_to_async
 def get_user_chats(user_id):
 
     from publish.models import ChatRoom

@@ -5,6 +5,7 @@ from websocket.websocket_database_helpers import (
     get_user_by_id,
     add_user_to_chat,
     save_message_to_chat,
+    set_message_status_read,
     get_user_chats,
     get_chat_messages,
     delete_message,
@@ -47,9 +48,16 @@ class CommunityAction:
                     'message': message,
                 }))
 
-        # Save the message to the chat
         user = await get_user_by_id(int(user_id))
         await save_message_to_chat(chat_hash, user, message)
+
+    @staticmethod
+    async def set_status_read(message_id):
+
+        participants_id_list = await set_message_status_read(message_id)
+
+        return participants_id_list
+
 
     @staticmethod
     async def get_chat_list(user_id):

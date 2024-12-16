@@ -24,6 +24,8 @@ class Message(models.Model):
 
     content = models.TextField()
 
+    status = models.CharField(default='delivered', choices=[('delivered', 'Delivered'), ('read', 'Read')], max_length=10)
+
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
