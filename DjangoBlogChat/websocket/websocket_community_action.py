@@ -21,13 +21,14 @@ class CommunityAction:
     async def chat_message(data, user_id, connected_users):
 
         participants = data.get('participants').split(',')
+        print('participants:', participants)
         sender_id = int(data.get('sender'))
         sender_name = str(data.get('sender_name'))
         message = data.get('message')
 
         participants_ids = list(map(int, participants))
         participants_ids.sort()
-
+        print(participants_ids)
         chat_name = f"chat_{'_'.join(map(str, participants_ids))}"
         chat_hash = hashlib.sha256(chat_name.encode('utf-8')).hexdigest()
 
