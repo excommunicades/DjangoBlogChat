@@ -62,6 +62,7 @@ def get_user_chats(user_id):
     return [{
         'chat_users': ', '.join([user.username for user in chat.users.exclude(id=user_id)]),
         'chat_id': chat.id,
+        'chat_participant_list': ', '.join([str(user.id) for user in chat.users.all()]),
         'last_message_time': chat.last_message_time.isoformat() if chat.last_message_time else None
     } for chat in chats]
 
