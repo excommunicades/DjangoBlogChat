@@ -25,6 +25,7 @@ class CommunityAction:
         sender_id = int(data.get('sender'))
         sender_name = str(data.get('sender_name'))
         message = data.get('message')
+        chat_id = data.get('chat_id')
 
         participants_ids = list(map(int, participants))
         participants_ids.sort()
@@ -47,6 +48,7 @@ class CommunityAction:
                     'sender_id': sender_id,
                     'username': sender_name,
                     'message': message,
+                    'chat_id': chat_id,
                 }))
 
         user = await get_user_by_id(int(user_id))
