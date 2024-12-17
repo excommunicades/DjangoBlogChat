@@ -76,8 +76,8 @@ class CommunityConsumer(AsyncWebsocketConsumer):
 
                 for participant_channel in participants:
                     await participant_channel.send(text_data=json.dumps({
-                        'type': 'message_deleted',
-                        'message_id': message_id,
+                        'type': 'chat_deleted',
+                        'chat_id': chat_id,
                     }))
 
         elif action == 'delete_chat_message':

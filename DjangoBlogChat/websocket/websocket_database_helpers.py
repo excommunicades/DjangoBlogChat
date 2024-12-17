@@ -87,15 +87,21 @@ def delete_chat(chat_id, user):
 
     chat = ChatRoom.objects.filter(id=chat_id).first()
 
-    participants = chat.users.all()
+    if not chat:
+        return []
+
+    participants = list(chat.users.all())
 
 
-    if user not in chat.users.values_list('id', flat=True):
+    if user in chat.users.values_list('id', flat=True):
 
         chat.delete()
-        chat.save()
 
-        return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+        return [
+            connected_users.get(participant.id)
+            for participant in participants
+            if connected_users.get(participant.id)
+            ]
 
     return []
 
