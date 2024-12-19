@@ -1,5 +1,7 @@
-from django.db.models import Max
 from channels.db import database_sync_to_async
+
+from django.utils import timezone
+from django.db.models import Max
 
 @database_sync_to_async
 def get_user_by_id(user_id):
@@ -49,6 +51,7 @@ def set_message_status_read(message_id):
     if message:
         
         message.status = 'read'
+        message.when_read = timezone.now()
 
         message.save()
 
@@ -85,6 +88,7 @@ def get_chat_messages(chat_id):
         'username': message.user.username,
         'message': message.content,
         'status:': message.status,
+        'when_message_read': message.when_read if message.when_read else None,
         'timestamp': message.timestamp.isoformat()} for message in messages]
 
 @database_sync_to_async
