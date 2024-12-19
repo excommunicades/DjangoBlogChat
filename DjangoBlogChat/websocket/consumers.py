@@ -77,6 +77,7 @@ class CommunityConsumer(AsyncWebsocketConsumer):
                 for participant_channel in participants:
                     await participant_channel.send(text_data=json.dumps({
                         'type': 'chat_deleted',
+                        'message': f'chat {chat_id} was deleted successfully!',
                         'chat_id': chat_id,
                     }))
 

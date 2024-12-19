@@ -21,7 +21,7 @@ class CommunityAction:
     async def chat_message(data, user_id, connected_users):
 
         participants = data.get('participants').split(',')
-        print('participants:', participants)
+
         sender_id = int(data.get('sender'))
         sender_name = str(data.get('sender_name'))
         message = data.get('message')
@@ -29,7 +29,7 @@ class CommunityAction:
 
         participants_ids = list(map(int, participants))
         participants_ids.sort()
-        print(participants_ids)
+
         chat_name = f"chat_{'_'.join(map(str, participants_ids))}"
         chat_hash = hashlib.sha256(chat_name.encode('utf-8')).hexdigest()
 
@@ -39,7 +39,23 @@ class CommunityAction:
             
             user = await get_user_by_id(int(participant_id))
 
-            await add_user_to_chat(chat_name=chat_hash, user=user)
+            operation_status = await add_user_to_chat(chat_name=chat_hash, user=user)
+
+            if operation_status.get('status') == 'created':
+
+                if participant_channel:
+
+                    for send_chat_created in participants_ids:
+
+                        created_chat_channel = connected_users.get(send_chat_created)
+
+                        await created_chat_channel.send(text_data=json.dumps({
+                            'type': 'chat_created',
+                            'sender_id': sender_id,
+                            'username': sender_name,
+                            'message': f'Chat {chat_id} was created.',
+                            'chat_id': chat_id,
+                        }))
 
             if participant_channel:
 

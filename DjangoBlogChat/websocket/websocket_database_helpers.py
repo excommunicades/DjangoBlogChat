@@ -20,7 +20,12 @@ def add_user_to_chat(chat_name, user):
 
     if user is not None and user not in chat.users.values_list('id', flat=True):
         chat.users.add(user)
-    return chat
+
+    if created:
+
+        return {"chat": chat.id, "status": "created"}
+
+    return {"chat": chat.id, "status": "existing"}
 
 @database_sync_to_async
 def save_message_to_chat(chat_name, user, message):
