@@ -84,7 +84,9 @@ class CommunityConsumer(AsyncWebsocketConsumer):
         elif action == 'delete_chat_message':
 
             message_id = data.get('message_id')
-            participants = await CommunityAction.delete_chat_message(message_id, self.user_id)
+            chat_id = data.get('chat_id')
+
+            participants = await CommunityAction.delete_chat_message(message_id, self.user_id, chat_id)
 
             for participant_channel in participants:
                 await participant_channel.send(text_data=json.dumps({

@@ -106,9 +106,9 @@ class CommunityAction:
         return participants_id_list
 
     @staticmethod
-    async def delete_chat_message(message_id, user):
+    async def delete_chat_message(message_id, user, chat_id):
 
-        participants_id_list = await delete_message(message_id, user)
+        participants_id_list = await delete_message(message_id, user, chat_id)
 
         return participants_id_list
 

@@ -112,17 +112,47 @@ def delete_chat(chat_id, user):
 
 
 @database_sync_to_async
-def delete_message(message_id, user):
+def delete_message(message_id, user, chat_id):
 
     from publish.models import Message
     from websocket.consumers import connected_users
 
-    message = Message.objects.filter(id=message_id).first()
+    messages = Message.objects.filter(room_id=chat_id)
+
+    message = messages.filter(id=message_id).first()
+
     if message and message.user.id == user:
-        message.delete()
+
+        if messages.count() > 1:
+
+            message.delete()
+
+        else:
+
+            message.delete()
+
+            room = message.room
+
+            room.delete()
+            print('room deleted')
         participants = message.room.users.all()
+
         return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+
     return []
+
+# @database_sync_to_async
+# def delete_message(message_id, user):
+
+#     from publish.models import Message
+#     from websocket.consumers import connected_users
+
+#     message = Message.objects.filter(id=message_id).first()
+#     if message and message.user.id == user:
+#         message.delete()
+#         participants = message.room.users.all()
+#         return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]я
+#     return []
 
 @database_sync_to_async
 def update_message(message_id, user, new_message_content):
