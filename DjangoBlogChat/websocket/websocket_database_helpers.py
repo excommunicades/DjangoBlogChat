@@ -84,6 +84,7 @@ def get_chat_messages(chat_id):
         'user_id': message.user.id,
         'username': message.user.username,
         'message': message.content,
+        'status:': message.status,
         'timestamp': message.timestamp.isoformat()} for message in messages]
 
 @database_sync_to_async

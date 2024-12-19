@@ -30,6 +30,7 @@ class CommunityAction:
         participants_ids.sort()
 
         chat_name = f"chat_{'_'.join(map(str, participants_ids))}"
+
         chat_hash = hashlib.sha256(chat_name.encode('utf-8')).hexdigest()
 
         for participant_id in participants_ids:
@@ -48,13 +49,15 @@ class CommunityAction:
 
                         created_chat_channel = connected_users.get(send_chat_created)
 
-                        await created_chat_channel.send(text_data=json.dumps({
-                            'type': 'chat_created',
-                            'sender_id': sender_id,
-                            'username': sender_name,
-                            'message': f'Chat {operation_status.get('chat')} was created.',
-                            'chat_id': operation_status.get('chat'),
-                        }))
+                        if created_chat_channel:
+
+                            await created_chat_channel.send(text_data=json.dumps({
+                                'type': 'chat_created',
+                                'sender_id': sender_id,
+                                'username': sender_name,
+                                'message': f'Chat {operation_status.get('chat')} was created.',
+                                'chat_id': operation_status.get('chat'),
+                            }))
 
             if participant_channel:
 
