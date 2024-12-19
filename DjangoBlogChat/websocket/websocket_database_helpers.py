@@ -33,7 +33,9 @@ def save_message_to_chat(chat_name, user, message):
     from publish.models import ChatRoom, Message
 
     chat = ChatRoom.objects.get(name=chat_name)
-    Message.objects.create(user=user, room=chat, content=message)
+    message = Message.objects.create(user=user, room=chat, content=message)
+
+    return message
 
 @database_sync_to_async
 def set_message_status_read(message_id):
