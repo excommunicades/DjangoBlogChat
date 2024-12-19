@@ -12,6 +12,8 @@ from websocket.websocket_database_helpers import (
     update_message,
     save_forward_message,
     delete_chat,
+    pin_message,
+    reply_message,
 )
 
 
@@ -119,6 +121,20 @@ class CommunityAction:
     async def update_chat_message(message_id, user, new_message_content):
 
         participants_id_list = await update_message(message_id, user, new_message_content)
+
+        return participants_id_list
+
+    @staticmethod
+    async def pin_chat_message(message_id, user):
+
+        participants_id_list = await pin_message(message_id, user)
+
+        return participants_id_list
+
+    @staticmethod
+    async def reply_chat_message(message_replied_id, reply_content, chat_id, user):
+
+        participants_id_list = await reply_message(message_replied_id, reply_content, chat_id,  user)
 
         return participants_id_list
 

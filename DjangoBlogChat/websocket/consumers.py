@@ -107,7 +107,42 @@ class CommunityConsumer(AsyncWebsocketConsumer):
                     'new_content': new_message_content,
                 }))
 
-        elif action == 'forward_message':
+        elif action == 'pin_chat_message':
+
+            message_id = data.get('message_id')
+            pin_owner_username = data.get('pin_owner_username')
+
+            participants = await CommunityAction.pin_chat_message(message_id, self.user_id)
+
+            for participant_channel in participants:
+                await participant_channel.send(text_data=json.dumps({
+                    'type': 'message_pinned',
+                    'message_id': message_id,
+                    'pin_owner_id': self.user_id,
+                    'pin_owner_username': pin_owner_username
+                }))
+
+        elif action == 'reply_chat_message':
+
+            message_replied_id = data.get('message_replied_id')
+            sender_id = int(data.get('sender'))
+            chat_id = int(data.get('chat_id'))
+            sender_username = str(data.get('sender_username'))
+            reply_content = data.get('reply_content')
+
+            participants = await CommunityAction.reply_chat_message(message_replied_id, reply_content, chat_id, self.user_id)
+
+            for participant_channel in participants:
+
+                await participant_channel.send(text_data=json.dumps({
+                    'type': 'message_replied',
+                    'message_replied_id': message_replied_id,
+                    'sender_id': sender_id,
+                    'sender_username': sender_username,
+                    'reply': reply_content
+                }))
+
+        elif action == 'forward_chat_message':
 
             message_content = data.get('message_content')
             from_user_id = data.get('from_user_id')
