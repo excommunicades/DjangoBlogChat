@@ -2,6 +2,7 @@ from blog_user.models import BlogUser
 
 
 def user_pagination(page, page_size):
+    print('sdfsdfsdf')
 
     if page:
 
@@ -17,7 +18,7 @@ def user_pagination(page, page_size):
 
         else:
 
-            queryset = BlogUser.objects.all()[page_number:page_size]
+            queryset = BlogUser.objects.all()[0:page_size]
     else:
 
         queryset = BlogUser.objects.all()[0:page_size]

@@ -28,6 +28,10 @@ class Message(models.Model):
 
     when_read = models.DateTimeField(blank=True, null=True)
 
+    reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+
+    reply_message = models.TextField(blank=True, null=True)
+
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
