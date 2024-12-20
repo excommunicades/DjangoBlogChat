@@ -88,7 +88,10 @@ def get_chat_messages(chat_id):
         'username': message.user.username,
         'message': message.content,
         'status:': message.status,
-        'when_message_read': message.when_read if message.when_read else None,
+        'when_message_was_read': message.when_read if message.when_read else None,
+        'is_pinned': message.is_pinned,
+        'is_it_reply': True if message.reply_to else False,
+        'reply_to': message.reply_to,
         'timestamp': message.timestamp.isoformat()} for message in messages]
 
 @database_sync_to_async
