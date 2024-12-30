@@ -139,8 +139,9 @@ class CommunityAction:
         return participants_id_list
 
     @staticmethod
-    async def forward_chat_message(message_content, from_user_id, to_chat_id):
+    async def forward_chat_message(message_content, from_user_id, reply_from_user,  to_chat_id):
 
-        participants_id_list = await save_forward_message(message_content, from_user_id, to_chat_id)
+        user_from = await get_user_by_id(reply_from_user)
+        participants_id_list = await save_forward_message(message_content, from_user_id, user_from,  to_chat_id)
 
         return participants_id_list

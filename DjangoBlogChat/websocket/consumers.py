@@ -143,13 +143,14 @@ class CommunityConsumer(AsyncWebsocketConsumer):
                 }))
 
         elif action == 'forward_chat_message':
-
+    
             message_content = data.get('message_content')
             from_user_id = data.get('from_user_id')
             from_user_username = data.get('from_user_username')
-            to_chat_id = data.get('to_user_id')
+            to_chat_id = data.get('to_chat_id')
+            reply_from_user = data.get('reply_from_user')
 
-            participants = await CommunityAction.forward_chat_message(message_content, from_user_id, to_chat_id)
+            participants = await CommunityAction.forward_chat_message(message_content, from_user_id, reply_from_user, to_chat_id)
 
             for participant_channel in participants:
 

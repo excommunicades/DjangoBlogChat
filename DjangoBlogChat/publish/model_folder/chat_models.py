@@ -30,7 +30,9 @@ class Message(models.Model):
 
     is_pinned = models.BooleanField(default=False)
 
-    reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    reply_from = models.ForeignKey(BlogUser, on_delete=models.CASCADE, null=True, blank=True, related_name='reply_owners')
+
+    reply_to = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
 
     timestamp = models.DateTimeField(auto_now_add=True)
 

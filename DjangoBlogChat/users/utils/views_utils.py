@@ -2,7 +2,6 @@ from blog_user.models import BlogUser
 
 
 def user_pagination(page, page_size):
-    print('sdfsdfsdf')
 
     if page:
 

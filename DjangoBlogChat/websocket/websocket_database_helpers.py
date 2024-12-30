@@ -87,11 +87,17 @@ def get_chat_messages(chat_id):
         'user_id': message.user.id,
         'username': message.user.username,
         'message': message.content,
-        'status:': message.status,
+        'status': message.status,
         'when_message_was_read': message.when_read if message.when_read else None,
         'is_pinned': message.is_pinned,
-        'is_it_reply': True if message.reply_to else False,
-        'reply_to': message.reply_to,
+        'reply_from_user': {
+            'username': str(message.reply_from.username),
+            'nickname': str(message.reply_from.nickname),
+            'id': int(message.reply_from.id)
+        } if message.reply_from else False,
+        # 'reply_from_user': int(message.reply_from.id) if message.reply_from else False,
+        'is_it_reply': True if message.reply_from else False,
+        'reply_to': message.reply_to.id if message.reply_to is not None else False,
         'timestamp': message.timestamp.isoformat()} for message in messages]
 
 @database_sync_to_async
@@ -144,7 +150,7 @@ def delete_message(message_id, user, chat_id):
             room = message.room
 
             room.delete()
-            print('room deleted')
+
         participants = message.room.users.all()
 
         return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
@@ -195,7 +201,7 @@ def reply_message(message_replied_id, reply_content, chat_id, user):
 
 
 @database_sync_to_async
-def save_forward_message(message_content, from_user_id, to_chat_id):
+def save_forward_message(message_content, from_user_id, user_from,  to_chat_id):
 
     from publish.models import Message
     from websocket.consumers import connected_users
@@ -203,7 +209,9 @@ def save_forward_message(message_content, from_user_id, to_chat_id):
     message = Message.objects.create(
                             content=message_content,
                             room_id=to_chat_id,
-                            user_id=from_user_id
+                            user_id=from_user_id,
+                            reply_from=user_from,
+                            reply_to_id=to_chat_id,
                             )
 
     participants = message.room.users.all()
