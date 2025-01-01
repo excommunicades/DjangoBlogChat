@@ -3,7 +3,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from user_profile.serializers import (
-    GetUserDataSerializer
+    GetUserDataSerializer,
+    SetUserAvatarSerializer
 )
 
 from user_profile.utils.views_utils import (
@@ -31,11 +32,52 @@ class Get_User_Data(generics.GenericAPIView):
 
             return Response({"error": "User does not exist."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response({
-                    "userId": user.pk,
-                    "username": user.username,
-                    "nickname": user.nickname,
-                    "email": user.email,
-                    "is_activated": user.is_actived,
-                    "role": user.role
-                }, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class Set_User_Avatar(generics.UpdateAPIView):
+
+    '''Retrieve user data by user id'''
+
+    serializer_class = SetUserAvatarSerializer
+
+    def patch(self, request):
+
+        request_user = self.request.user
+
+        user = get_user_by_request(request_user=request_user)
+
+        if user is None:
+
+            return Response({"error": "User does not exist."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(user, data=request.data)
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+
+        request_user = self.request.user
+
+        user = get_user_by_request(request_user=request_user)
+
+        if user is None:
+
+            return Response({"error": "User does not exist."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(user, data=request.data)
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,7 +1,17 @@
 import os
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
+
+from blog_user.choices import (
+    USER_ROLE_CHOICES,
+    GENDER_CHOICES,
+    COUNTRIES,
+    TIME_ZONES,
+    ACCOUNT_STATUS_CHOICES,
+    PROGRAMMING_ROLES_CHOICES,
+)
 
 
 def image_upload_function(instance, filename):
@@ -50,11 +60,7 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
     # first_name = models.CharField(max_length=30, blank=False, null=False)
     # last_name = models.CharField(max_length=30, blank=False, null=False)
 
-    USER_ROLE_CHOICES = [
-        ('user', 'User'),
-        ('moderator', 'Moderator'),
-        ('admin', 'Administrator'),
-    ]
+    # TODO (other tables): WORK EXPERIENCE, PROJECTS, CERTIFICATES, LICENSES, EDUCATION, LIKES, DISLIKES, HOBBY, FRIENDS, LAST ACTIVITY, REVIEWS
 
     username = models.CharField(
                             max_length=30,
@@ -68,7 +74,6 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
                             null=False,
                             unique=True,
                             )
-
     email = models.EmailField(
                         unique=True,
                         blank=False,
@@ -81,17 +86,69 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
                             null=False,
                             )
 
-    avatar = models.ImageField(upload_to=image_upload_function, blank=True, null=True)
+    avatar = models.ImageField(upload_to=image_upload_function, default='default/default_avatar.png')
 
-    is_actived = models.BooleanField(default=True)
-
-    is_blocked = models.BooleanField(default=False)
+    registered_at = models.DateTimeField(auto_now_add=True)
 
     role = models.CharField(
                         max_length=10,
                         choices=USER_ROLE_CHOICES,
                         default='user'
                             )
+
+    behavior_points = models.IntegerField(default=1000)
+
+    gender = models.CharField(
+                        max_length=6,
+                        choices=GENDER_CHOICES,
+                        default='other')
+
+    birthday = models.DateField(blank=True, null=True)
+
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+
+    country = models.CharField(default='None', choices=COUNTRIES)
+
+    time_zones = models.CharField(default='UTC+00:00',choices=TIME_ZONES)
+
+    status = models.CharField(max_length=10, default='ACTIVE', choices=ACCOUNT_STATUS_CHOICES)
+
+    telegram = models.CharField(max_length=100, blank=True, null=True)
+    whatsapp = models.CharField(max_length=100, blank=True, null=True)
+    viber = models.CharField(max_length=100, blank=True, null=True)
+    linkedin = models.URLField(max_length=200, blank=True, null=True)
+    github = models.URLField(max_length=200, blank=True, null=True)
+    instagram = models.CharField(max_length=100, blank=True, null=True)
+    skype = models.CharField(max_length=100, blank=True, null=True)
+    discord = models.CharField(max_length=100, blank=True, null=True)
+    dou = models.CharField(max_length=100, blank=True, null=True)
+    djinni = models.CharField(max_length=100, blank=True, null=True)
+    website = models.URLField(max_length=200, blank=True, null=True)
+    facebook = models.URLField(max_length=200, blank=True, null=True)
+    twitter = models.CharField(max_length=100, blank=True, null=True)
+    youtube = models.URLField(max_length=200, blank=True, null=True)
+    pinterest = models.URLField(max_length=200, blank=True, null=True)
+    tiktok = models.CharField(max_length=100, blank=True, null=True)
+    reddit = models.CharField(max_length=100, blank=True, null=True)
+    snapchat = models.CharField(max_length=100, blank=True, null=True)
+
+    business_email = models.EmailField(max_length=100, blank=True,null=True)
+
+    job_title = models.CharField(
+        default='None',
+        max_length=40,
+        choices=PROGRAMMING_ROLES_CHOICES,
+        blank=True,
+        null=True,
+    )
+
+    two_factor_method = models.CharField(
+        default='disabled',
+        max_length=50, 
+        choices=[('enabled', 'Enabled'), ('disabled', 'Disabled')],
+        blank=True, 
+        null=True
+    )
 
     USERNAME_FIELD = 'nickname'
 

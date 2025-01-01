@@ -5,7 +5,7 @@ from blog_user.models import BlogUser
 
 from users.serializers import (
     UserListSerializer,
-    UserDataSerializer
+    UserDataSerializer,
 )
 
 from users.utils.views_utils import (
@@ -29,6 +29,7 @@ class User_List(ListAPIView):
         page_size = 15
 
         return user_pagination(page, page_size)
+
 
 class User_Data(RetrieveAPIView):
 
