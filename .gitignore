@@ -36,6 +36,7 @@ staticfiles/
 # Virtual Environment
 .venv/
 .env
+DjangoBlogChat/.env
 .env/
 env/
 venv/
