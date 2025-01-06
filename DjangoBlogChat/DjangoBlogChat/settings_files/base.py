@@ -8,7 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-os.getenv('DEBUG', 'False') == 'True'
+# os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG')
 
 LANGUAGE_CODE = 'en-us'
 

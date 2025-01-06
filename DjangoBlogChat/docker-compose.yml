@@ -26,7 +26,7 @@ services:
   web:
     build: .
     container_name: django_clerbie_web
-    command: ["uvicorn", "DjangoBlogChat.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--workers", "3"]
+    command: ["bash", "-c", "python3 manage.py makemigrations && python3 manage.py migrate && uvicorn DjangoBlogChat.asgi:application --host 0.0.0.0 --port 8000"] #  --workers 3
     ports:
       - "8000:8000"
     depends_on:

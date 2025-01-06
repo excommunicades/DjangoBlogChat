@@ -11,7 +11,8 @@ class CommunityConsumer(AsyncWebsocketConsumer):
         query_params = dict(param.split('=') for param in self.scope['query_string'].decode().split('&'))
         self.user_id = query_params.get('userId')
 
-        if not self.user_id:
+        if not self.user_id or self.user_id == 'undefined':
+            print('connection closed by undefined')
             await self.close()
             return
 
@@ -25,10 +26,12 @@ class CommunityConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
 
-        if self.user_id in connected_users:
-            del connected_users[self.user_id]
+        if hasattr(self, 'room_group_name'):
 
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        
+        if hasattr(self, 'user_id') and self.user_id in connected_users:
+            del connected_users[self.user_id]
 
     async def receive(self, text_data):
 
