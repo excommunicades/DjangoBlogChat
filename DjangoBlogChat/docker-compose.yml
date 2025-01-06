@@ -1,24 +1,32 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:13
+    container_name: django_clerbie_db
     env_file:
       - ./.env
-    ports:
-      - "5438:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: BlogChat
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
-      - djangoblogchat_net
+      - djangoclerbie_net
+    restart: always
+
+  redis:
+    image: redis:alpine
+    container_name: django_clerbie_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - djangoclerbie_net
+    restart: always
 
   web:
     build: .
-    command: sh -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    container_name: django_clerbie_web
+    command: ["uvicorn", "DjangoBlogChat.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--workers", "3"]
     ports:
       - "8000:8000"
     depends_on:
@@ -28,24 +36,21 @@ services:
       - .:/app
     env_file:
       - ./.env
-    networks:
-      - djangoblogchat_net
     environment:
-      - DATABASE_URL=postgres://postgres:12345@db:5432/BlogChat
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6383:6379"
-    volumes:
-      - redis_data:/data
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     networks:
-      - djangoblogchat_net
+      - djangoclerbie_net
+    restart: always
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  djangoblogchat_net:
+  djangoclerbie_net:
     driver: bridge
+

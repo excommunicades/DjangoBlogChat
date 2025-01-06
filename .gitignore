@@ -70,3 +70,6 @@ Desktop.ini
 *.swo
 *.swn
 *~.nfs*
+
+DockerfileDemo
+docker-composeDemo.yml
