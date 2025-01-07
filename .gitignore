@@ -17,6 +17,7 @@ eggs/
 *.tgz
 *.tar.gz
 *.zip
+.env
 
 # Django specific
 *.log
@@ -43,6 +44,7 @@ venv/
 ENV/
 venv.bak/
 env.bak/
+DjangoBlogChat/.env
 
 # Pipenv
 Pipfile.lock
