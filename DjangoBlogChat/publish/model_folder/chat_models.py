@@ -13,7 +13,8 @@ class ChatRoom(models.Model):
     def __str__(self):
         return self.name
 
-
+    class Meta:
+        db_table = 'Chats'
 
 
 class Message(models.Model):
@@ -39,3 +40,6 @@ class Message(models.Model):
 
     def __str__(self):
         return f'{self.user.username}: {self.content[:30]}'
+
+    class Meta:
+        db_table = 'ChatMessages'

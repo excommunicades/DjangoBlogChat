@@ -432,3 +432,9 @@ PROGRAMMING_ROLES_CHOICES = [
     ('DOCUMENTATION_ENGINEER', 'Documentation Engineer'),
     ('LEGAL_ENGINEER', 'Legal Engineer'),
 ]
+
+REACTIONS = [
+    ('none', 'None'),
+    ('like', 'Like'),
+    ('dislike', 'Dislike')
+    ]

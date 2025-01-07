@@ -47,6 +47,9 @@ class Posts(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
+    class Meta:
+        db_table = 'Posts'
+
 class PostReactions(models.Model):
 
     """Model about post reactions as like, dislike, etc"""
@@ -70,4 +73,5 @@ class PostReactions(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
-
+    class Meta:
+        db_table = 'PostReactions'
