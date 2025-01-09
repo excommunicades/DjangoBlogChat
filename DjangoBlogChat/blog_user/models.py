@@ -60,9 +60,6 @@ class BlogUser(AbstractBaseUser, PermissionsMixin):
 
     """Blog user model"""
 
-    # first_name = models.CharField(max_length=30, blank=False, null=False)
-    # last_name = models.CharField(max_length=30, blank=False, null=False)
-
     username = models.CharField(
                             max_length=30,
                             blank= False,

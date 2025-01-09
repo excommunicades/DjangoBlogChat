@@ -1,24 +1,67 @@
 from rest_framework import serializers
-from blog_user.models import BlogUser
+from blog_user.choices import (
+    USER_ROLE_CHOICES,
+    GENDER_CHOICES,
+    COUNTRIES,
+    TIME_ZONES,
+    ACCOUNT_STATUS_CHOICES,
+    PROGRAMMING_ROLES_CHOICES,
+    REACTIONS,
+)
+from blog_user.models import (
+BlogUser,
+BlogUser_friends,
+BlogUser_hobbies,
+BlogUser_education,
+BlogUser_certificates,
+BlogUser_reactions,
+UserWorkExperience,
+Hobby,
+Education,
+Technologies,
+Work,
+UserWorkExperience,
+Certificates
+)
+
 
 class GetUserDataSerializer(serializers.ModelSerializer):
-
     """
-    Serializer for data transfer for bd/ also for swagger.
+    Serializer for transferring BlogUser data, including related models for friends, hobbies, education, certificates, work experience, etc.
     """
 
     avatar = serializers.CharField(required=False, allow_null=True)
+    nickname = serializers.CharField()
+    email = serializers.EmailField()
+    role = serializers.ChoiceField(choices=USER_ROLE_CHOICES)
+    behavior_points = serializers.IntegerField()
+    gender = serializers.ChoiceField(choices=GENDER_CHOICES)
+    birthday = serializers.DateField(allow_null=True)
+    phone_number = serializers.CharField(allow_null=True)
+    country = serializers.ChoiceField(choices=COUNTRIES)
+    time_zones = serializers.ChoiceField(choices=TIME_ZONES)
+    status = serializers.ChoiceField(choices=ACCOUNT_STATUS_CHOICES)
+    job_title = serializers.ChoiceField(choices=PROGRAMMING_ROLES_CHOICES, allow_null=True)
+    two_factor_method = serializers.ChoiceField(choices=[('enabled', 'Enabled'), ('disabled', 'Disabled')])
+    
+    # New "socials" field
+    socials = serializers.SerializerMethodField()
+
+    # Related fields for friends, hobbies, education, certificates, work experience, and reactions
+    friends = serializers.SerializerMethodField()
+    hobbies = serializers.SerializerMethodField()
+    education = serializers.SerializerMethodField()
+    certificates = serializers.SerializerMethodField()
+    work_experience = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
 
     class Meta:
         model = BlogUser
         fields = [
-            'id',
-            'username',
+            'avatar',
             'nickname',
             'email',
             'role',
-            'avatar',
-            'registered_at',
             'behavior_points',
             'gender',
             'birthday',
@@ -26,20 +69,83 @@ class GetUserDataSerializer(serializers.ModelSerializer):
             'country',
             'time_zones',
             'status',
-            'telegram',
-            'whatsapp',
-            'linkedin',
-            'github',
-            'instagram',
-            'skype',
-            'discord',
-            'website',
-            'facebook',
-            'youtube',
-            'business_email',
             'job_title',
             'two_factor_method',
+            'socials',
+            'friends',
+            'hobbies',
+            'education',
+            'certificates',
+            'work_experience',
+            'reactions'
         ]
+    def get_socials(self, obj):
+        return {
+            "telegram": obj.telegram,
+            "linkedin": obj.linkedin,
+            "github": obj.github,
+            "instagram": obj.instagram,
+            "skype": obj.skype,
+            "discord": obj.discord,
+            "website": obj.website,
+            "facebook": obj.facebook,
+            "youtube": obj.youtube,
+            "business_email": obj.business_email
+        }
+
+    def get_friends(self, obj):
+        friends = BlogUser_friends.objects.filter(user=obj)
+        return BlogUserSerializer(friends, many=True).data
+    
+    def get_hobbies(self, obj):
+        hobbies = BlogUser_hobbies.objects.filter(user=obj)
+        return HobbySerializer(hobbies, many=True).data
+
+    def get_education(self, obj):
+        education = BlogUser_education.objects.filter(user=obj)
+        return EducationSerializer(education, many=True).data
+
+    def get_certificates(self, obj):
+        certificates = BlogUser_certificates.objects.filter(user=obj)
+        return CertificateSerializer(certificates, many=True).data
+
+    def get_work_experience(self, obj):
+        work_experience = UserWorkExperience.objects.filter(user=obj)
+        return WorkExperienceSerializer(work_experience, many=True).data
+
+    def get_reactions(self, obj):
+        reactions = BlogUser_reactions.objects.filter(user=obj)
+        return ReactionSerializer(reactions, many=True).data
+
+class BlogUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogUser
+        fields = ['id', 'nickname', 'email', 'avatar']
+
+class HobbySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hobby
+        fields = ['name']
+
+class EducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Education
+        fields = ['name']
+
+class CertificateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Certificates
+        fields = ['name', 'description']
+
+class WorkExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserWorkExperience
+        fields = ['work', 'start_date', 'end_date', 'description']
+
+class ReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogUser_reactions
+        fields = ['profile', 'reaction', 'review']
 
 class SetUserAvatarSerializer(serializers.ModelSerializer):
 
