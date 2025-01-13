@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     "debug_toolbar",
+    'django_extensions',
 
     'django.contrib.admin',
     'django.contrib.auth',

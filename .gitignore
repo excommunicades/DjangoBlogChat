@@ -62,6 +62,8 @@ pipenv.lock
 *.sublime-project
 *.editorconfig
 
+model.png
+
 # macOS
 .DS_Store
 

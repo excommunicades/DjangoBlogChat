@@ -11,6 +11,7 @@ coreschema==0.0.4
 Django==5.1.4
 django-cors-headers==4.6.0
 django-debug-toolbar==4.4.6
+django-extensions==3.2.3
 django-phonenumber-field==8.0.0
 django-redis==5.4.0
 django-rest-swagger==2.2.0
@@ -34,7 +35,10 @@ psycopg==3.2.3
 psycopg-binary==3.2.3
 psycopg2==2.9.10
 psycopg2-binary==2.9.10
+pydot==3.0.4
+pydotplus==2.0.2
 PyJWT==2.10.1
+pyparsing==3.2.1
 python-dotenv==1.0.1
 pytz==2024.2
 PyYAML==6.0.2
