@@ -45,3 +45,7 @@ EMAIL_PORT=os.getenv('PORT')
 EMAIL_USE_TLS=os.getenv('USE_TLS')
 EMAIL_HOST_USER=os.getenv('HOST_USER')
 EMAIL_HOST_PASSWORD=os.getenv('HOST_PASSWORD')
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

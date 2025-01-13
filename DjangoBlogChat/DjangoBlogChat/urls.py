@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from debug_toolbar.toolbar import debug_toolbar_urls
 from rest_framework.schemas import get_schema_view
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
@@ -49,4 +50,4 @@ urlpatterns = [
                             template_name='hub2.html'), name='user_chat'),
     path('hub3', TemplateView.as_view(
                             template_name='hub3.html'), name='user_chat'),
-]
+]+debug_toolbar_urls()
