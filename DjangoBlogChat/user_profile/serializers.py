@@ -147,14 +147,29 @@ class ReactionSerializer(serializers.ModelSerializer):
         model = BlogUser_reactions
         fields = ['profile', 'reaction', 'review']
 
-class SetUserAvatarSerializer(serializers.ModelSerializer):
+# class SetUserAvatarSerializer(serializers.ModelSerializer):
 
-    avatar = serializers.ImageField(required=True)
+#     avatar = serializers.ImageField(required=True)
+
+#     class Meta:
+
+#         model = BlogUser
+#         fields = ['avatar']
+
+
+class UpdateGeneralDataSerializer(serializers.ModelSerializer):
 
     class Meta:
-
         model = BlogUser
-        fields = ['avatar']
+        fields = [
+            'username',
+            'avatar',
+            'gender',
+            'birthday',
+            'phone_number',
+            'country',
+            'time_zones',
+            'business_email']
 
     def validate_avatar(self, value):
 
@@ -189,3 +204,19 @@ class SetUserAvatarSerializer(serializers.ModelSerializer):
             value = value.__class__(file=byte_io, name=value.name)
 
         return value
+
+
+class SocialLinksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogUser
+        fields = [
+            'telegram', 
+            'linkedin', 
+            'github', 
+            'instagram', 
+            'skype', 
+            'discord', 
+            'website', 
+            'facebook', 
+            'youtube'
+        ]
