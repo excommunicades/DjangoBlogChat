@@ -17,6 +17,8 @@ from blog_user.choices import (
 )
 
 
+# TODO: add prefetch_realted/ select_related to project (websocket).
+
 def image_upload_function(instance, filename):
 
     model_name = instance.__class__.__name__.lower()
