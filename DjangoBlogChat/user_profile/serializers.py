@@ -60,7 +60,7 @@ class GetUserDataSerializer(serializers.ModelSerializer):
         model = BlogUser
         fields = [
             'id',
-            'username'
+            'username',
             'avatar',
             'nickname',
             'email',
