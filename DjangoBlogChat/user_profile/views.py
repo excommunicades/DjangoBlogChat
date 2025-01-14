@@ -7,13 +7,17 @@ from user_profile.serializers import (
     # SetUserAvatarSerializer,
     UpdateGeneralDataSerializer,
     SocialLinksSerializer,
+    CreateProjectSerializer,
 )
 
 from user_profile.utils.views_utils import (
     get_user_by_request
 )
 
-from blog_user.models import BlogUser
+from blog_user.models import(
+    BlogUser,
+    Projects,
+)
 
 class Get_User_Data(generics.GenericAPIView):
 
@@ -104,3 +108,9 @@ class Update_Social_Links(generics.UpdateAPIView):
 
     def get_object(self):
         return BlogUser.objects.get(pk=self.request.user.pk)
+
+class Create_Project(generics.CreateAPIView):
+
+    queryset = Projects.objects.all()
+    serializer_class = CreateProjectSerializer
+    authentication_classes = [JWTAuthentication]

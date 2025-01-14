@@ -1,4 +1,9 @@
+import io
+from PIL import Image
 from rest_framework import serializers
+
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from blog_user.choices import (
     USER_ROLE_CHOICES,
     GENDER_CHOICES,
@@ -21,7 +26,8 @@ Education,
 Technologies,
 Work,
 UserWorkExperience,
-Certificates
+Certificates,
+Projects,
 )
 
 
@@ -55,6 +61,7 @@ class GetUserDataSerializer(serializers.ModelSerializer):
     certificates = serializers.SerializerMethodField()
     work_experience = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
+    projects = serializers.SerializerMethodField()
 
     class Meta:
         model = BlogUser
@@ -80,7 +87,8 @@ class GetUserDataSerializer(serializers.ModelSerializer):
             'education',
             'certificates',
             'work_experience',
-            'reactions'
+            'reactions',
+            'projects',
         ]
     def get_socials(self, obj):
         return {
@@ -120,6 +128,10 @@ class GetUserDataSerializer(serializers.ModelSerializer):
         reactions = BlogUser_reactions.objects.filter(user=obj)
         return ReactionSerializer(reactions, many=True).data
 
+    def get_projects(self, obj):
+        projects = Projects.objects.filter(users=obj)
+        return ProjectSerializer(projects, many=True).data
+
 class BlogUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogUser
@@ -150,6 +162,24 @@ class ReactionSerializer(serializers.ModelSerializer):
         model = BlogUser_reactions
         fields = ['profile', 'reaction', 'review']
 
+class TechnologiesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Technologies
+        fields = [
+            'id',
+            'name',
+            'description']
+class ProjectSerializer(serializers.ModelSerializer):
+
+    technologies = TechnologiesSerializer(many=True)
+    users = BlogUserSerializer(many=True)
+    creator = BlogUserSerializer(read_only=True)
+
+    class Meta:
+        model = Projects
+        fields = ['id', 'name', 'description', 'technologies', 'users', 'creator']
+
 # class SetUserAvatarSerializer(serializers.ModelSerializer):
 
 #     avatar = serializers.ImageField(required=True)
@@ -174,39 +204,44 @@ class UpdateGeneralDataSerializer(serializers.ModelSerializer):
             'time_zones',
             'business_email']
 
-    def validate_avatar(self, value):
+def validate_avatar(self, value):
+    valid_extensions = ['image/png', 'image/jpg', 'image/webp']
+    if value.content_type not in valid_extensions:
+        raise serializers.ValidationError('Allowed image formats: PNG, JPG, WebP.')
 
-        valid_extensions = ['image/png', 'image/jpg', 'image/webp']
-        if value.content_type not in valid_extensions:
-            raise serializers.ValidationError('Allowed image formats: PNG, JPG, WebP.')
+    if value.size > 1 * 1024 * 1024:  # 1 MB
+        raise serializers.ValidationError('File size must not exceed 1MB.')
 
-        if value.size > 1 * 1024 * 1024:  # 1 MB
-            raise serializers.ValidationError('File size must not exceed 1MB.')
+    image = Image.open(value)
+    width, height = image.size
 
-        image = Image.open(value)
-        width, height = image.size
+    if width < 50 or height < 50:
+        raise serializers.ValidationError('Image must be at least 50x50 pixels.')
 
-        if width < 50 or height < 50:
-            raise serializers.ValidationError('Image must be at least 50x50 pixels.')
+    if width > 200 or height > 200:
+        image.thumbnail((200, 200))
 
-        if width > 200 or height > 200:
-            image.thumbnail((200, 200))
+        byte_io = io.BytesIO()
+        image.save(byte_io, format='PNG' if value.content_type == 'image/png' else 'JPEG' if value.content_type == 'image/jpeg' else 'WEBP')
+        byte_io.seek(0)
 
-            byte_io = io.BytesIO()
-            image.save(byte_io, format='PNG' if value.content_type == 'image/png' else 'JPEG' if value.content_type == 'image/jpeg' else 'WEBP')
+        if byte_io.tell() > 1 * 1024 * 1024:
+            image.save(byte_io, format='PNG' if value.content_type == 'image/png' else 'JPEG' if value.content_type == 'image/jpeg' else 'WEBP', quality=85)
             byte_io.seek(0)
-
-            if byte_io.tell() > 1 * 1024 * 1024:
-
-                image.save(byte_io, format='PNG' if value.content_type == 'image/png' else 'JPEG' if value.content_type == 'image/jpeg' else 'WEBP', quality=85)
-                byte_io.seek(0)
                 
-                if byte_io.tell() > 1 * 1024 * 1024:
-                    raise serializers.ValidationError('Compressed image size still exceeds 1MB.')
+            if byte_io.tell() > 1 * 1024 * 1024:
+                raise serializers.ValidationError('Compressed image size still exceeds 1MB.')
 
-            value = value.__class__(file=byte_io, name=value.name)
+        value = InMemoryUploadedFile(
+            byte_io,
+            field_name=value.field_name,
+            name=value.name,
+            content_type=value.content_type,
+            size=byte_io.tell(),
+            charset=None
+        )
 
-        return value
+    return value
 
 
 class SocialLinksSerializer(serializers.ModelSerializer):
@@ -223,3 +258,29 @@ class SocialLinksSerializer(serializers.ModelSerializer):
             'facebook', 
             'youtube'
         ]
+
+
+
+class CreateProjectSerializer(serializers.ModelSerializer):
+
+    technologies = TechnologiesSerializer(many=True, required=False)
+
+    class Meta:
+        model = Projects
+        fields = ['name', 'description', 'technologies']
+
+    def create(self, validated_data):
+
+        user = self.context['request'].user
+        technologies_data = validated_data.pop('technologies', [])
+
+        project = Projects.objects.create(creator=user, **validated_data)
+
+        for tech_data in technologies_data:
+            tech_name = tech_data.get('name')
+            technology, created = Technologies.objects.get_or_create(name=tech_name)
+            project.technologies.add(technology)
+
+        project.users.add(user)
+
+        return project

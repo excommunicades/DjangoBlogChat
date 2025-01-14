@@ -255,6 +255,7 @@ class Projects(models.Model):
     description = models.TextField(max_length=7000, blank=True, null=True)
     technologies = models.ManyToManyField(Technologies, blank=True)
     users = models.ManyToManyField(BlogUser, related_name='projects')
+    creator = models.ForeignKey(BlogUser, on_delete=models.CASCADE, related_name="created_project")
 
     def __str__(self):
         return self.name
