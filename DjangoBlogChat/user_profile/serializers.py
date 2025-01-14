@@ -59,7 +59,7 @@ class GetUserDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogUser
         fields = [
-            'pk',
+            'id',
             'username'
             'avatar',
             'nickname',
