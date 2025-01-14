@@ -32,6 +32,7 @@ class GetUserDataSerializer(serializers.ModelSerializer):
 
     avatar = serializers.CharField(required=False, allow_null=True)
     nickname = serializers.CharField()
+    username = serializers.CharField()
     email = serializers.EmailField()
     role = serializers.ChoiceField(choices=USER_ROLE_CHOICES)
     behavior_points = serializers.IntegerField()
@@ -58,6 +59,8 @@ class GetUserDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogUser
         fields = [
+            'pk',
+            'username'
             'avatar',
             'nickname',
             'email',
