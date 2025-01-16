@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:13
+    container_name: django_clerbie_db
+    env_file:
+      - ./.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - djangoclerbie_net
+    restart: always
+
+  redis:
+    image: redis:alpine
+    container_name: django_clerbie_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - djangoclerbie_net
+    restart: always
+
+  web:
+    build: .
+    container_name: django_clerbie_web
+    command: ["bash", "-c", "python3 manage.py makemigrations && python3 manage.py migrate && uvicorn Clerbie.asgi:application --host 0.0.0.0 --port 8000"] #  --workers 3
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+    networks:
+      - djangoclerbie_net
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  djangoclerbie_net:
+    driver: bridge
+

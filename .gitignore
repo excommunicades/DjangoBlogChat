@@ -37,14 +37,14 @@ staticfiles/
 # Virtual Environment
 .venv/
 .env
-DjangoBlogChat/.env
+Clerbie/.env
 .env/
 env/
 venv/
 ENV/
 venv.bak/
 env.bak/
-DjangoBlogChat/.env
+Clerbie/.env
 
 # Pipenv
 Pipfile.lock
