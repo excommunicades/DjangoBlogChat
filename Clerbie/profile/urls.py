@@ -10,7 +10,8 @@ from profile.views import(
     Update_Project,
     Create_Project_Invite, 
     Get_Inbox, 
-    InvitationResponseView
+    InvitationResponseView,
+    Get_Project_List
 )
 
 urlpatterns = [
@@ -23,6 +24,7 @@ urlpatterns = [
     path('update-socials', Update_Social_Links.as_view(), name='update-social-links'),
 
     # Projects Actions
+    path('projects', Get_Project_List.as_view(), name='project-list'),
     path('create-project', Create_Project.as_view(), name='create-project'),
     path('update-project/<int:pk>', Update_Project.as_view(), name='update-project'),
     path('create-invite/<int:project_id>', Create_Project_Invite.as_view(), name='create_invitation'),

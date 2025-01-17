@@ -12,6 +12,7 @@ from profile.serializers import (
     UpdateProjectSerializer,
     InvitationResponseSerializer,
     CreateInvitationSerializer,
+    ProjectSerializer,
 )
 from profile.utils.views_utils import (
     get_user_by_request
@@ -171,3 +172,8 @@ class InvitationResponseView(generics.GenericAPIView):
             return Response({"detail": f"Invitation {invite.status}."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Get_Project_List(generics.ListAPIView):
+
+    queryset = Projects.objects.all()
+    serializer_class = ProjectSerializer
