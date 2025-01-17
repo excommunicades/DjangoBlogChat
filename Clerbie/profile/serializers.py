@@ -227,3 +227,13 @@ class InvitationResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitation
         fields = ['status']
+
+
+class InvitationSerializer(serializers.ModelSerializer):
+
+    project = serializers.CharField(source='project.name')
+    sender = serializers.CharField(source='sender.nickname')
+
+    class Meta:
+        model = Invitation
+        fields = ['invite_code', 'project', 'sender', 'expires_at', 'status', 'created_at']

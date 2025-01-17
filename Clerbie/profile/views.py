@@ -13,6 +13,8 @@ from profile.serializers import (
     InvitationResponseSerializer,
     CreateInvitationSerializer,
     ProjectSerializer,
+    
+    InvitationSerializer,
 )
 from profile.utils.views_utils import (
     get_user_by_request
@@ -84,6 +86,7 @@ class Update_Project(generics.UpdateAPIView):
 
 class Create_Project_Invite(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
+    serializer_class = CreateInvitationSerializer
 
     def post(self, request, project_id):
 
@@ -127,27 +130,41 @@ class Create_Project_Invite(generics.GenericAPIView):
 
 class Get_Inbox(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
+    serializer_class = InvitationSerializer
 
     def get(self, request):
         user = request.user
 
         invitations = Invitation.objects.filter(receiver=user, expires_at__gt=timezone.now()).order_by('-created_at')
+        
+        serializer = InvitationSerializer(invitations, many=True)
 
-        invites_data = []
-        for invite in invitations:
-            invites_data.append({
-                "invite_code": str(invite.invite_code),
-                "project": invite.project.name,
-                "sender": invite.sender.nickname,
-                "expires_at": invite.expires_at,
-                "status": invite.status,
-                "created_at": invite.created_at,
-            })
+        return Response({"invitations": serializer.data}, status=status.HTTP_200_OK)
 
-        return Response({"invitations": invites_data}, status=status.HTTP_200_OK)
+# class Get_Inbox(generics.GenericAPIView):
+#     authentication_classes = [JWTAuthentication]
+    
+#     def get(self, request):
+#         user = request.user
+
+#         invitations = Invitation.objects.filter(receiver=user, expires_at__gt=timezone.now()).order_by('-created_at')
+
+#         invites_data = []
+#         for invite in invitations:
+#             invites_data.append({
+#                 "invite_code": str(invite.invite_code),
+#                 "project": invite.project.name,
+#                 "sender": invite.sender.nickname,
+#                 "expires_at": invite.expires_at,
+#                 "status": invite.status,
+#                 "created_at": invite.created_at,
+#             })
+
+#         return Response({"invitations": invites_data}, status=status.HTTP_200_OK)
 
 class InvitationResponseView(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
+    serializer_class = InvitationResponseSerializer
 
     def post(self, request, invite_code):
 
