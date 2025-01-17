@@ -1,7 +1,7 @@
 from authify.models import Clerbie
 
 
-def user_pagination(page, page_size):
+def user_pagination(page, page_size, user):
 
     if page:
 
@@ -13,13 +13,13 @@ def user_pagination(page, page_size):
 
             end = start + page_size
 
-            queryset = Clerbie.objects.all()[start:end]
+            queryset = Clerbie.objects.exclude(id=user.id)[start:end]
 
         else:
 
-            queryset = Clerbie.objects.all()[0:page_size]
+            queryset = Clerbie.objects.exclude(id=user.id)[0:page_size]
     else:
 
-        queryset = Clerbie.objects.all()[0:page_size]
+        queryset = Clerbie.objects.exclude(id=user.id)[0:page_size]
 
     return queryset

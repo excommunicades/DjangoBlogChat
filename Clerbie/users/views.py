@@ -20,6 +20,8 @@ class User_List(ListAPIView):
 
     def get_queryset(self):
 
+        user = self.request.user
+
         page = self.request.query_params.get('page', None)
 
         if page and not page.isdigit():
@@ -28,7 +30,7 @@ class User_List(ListAPIView):
 
         page_size = 15
 
-        return user_pagination(page, page_size)
+        return user_pagination(page, page_size, user)
 
 
 class User_Data(RetrieveAPIView):
