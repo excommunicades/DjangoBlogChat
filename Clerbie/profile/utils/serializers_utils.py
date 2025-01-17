@@ -21,7 +21,7 @@ from profile.models import (
     UserWorkExperience,
     Certificates,
     Projects,
-    Invitation,
+    Offers,
     InboxMessage
 )
 
@@ -83,17 +83,17 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Projects
         fields = ['id', 'name', 'description', 'technologies', 'users', 'creator']
 
-class InvitationSerializer(serializers.ModelSerializer):
+class OfferSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Invitation
-        fields = ['invite_code', 'project', 'user', 'status', 'created_at', 'expires_at']
+        model = Offers
+        fields = ['offer_code', 'project', 'user', 'status', 'created_at', 'expires_at']
 
 class InboxMessageSerializer(serializers.ModelSerializer):
-    invitation = InvitationSerializer()
+    offer = OfferSerializer()
 
     class Meta:
         model = InboxMessage
-        fields = ['user', 'invitation', 'message', 'read', 'created_at']
+        fields = ['user', 'offer', 'message', 'read', 'created_at']
 
 
 def validate_avatar(self, value):

@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 
 from authify.models import Clerbie
 
+
 class RegistrationService:
 
     def __init__(self, user_data):
@@ -219,3 +220,15 @@ def set_tokens_in_cookies(response, refresh_token):
         samesite='Lax',
         max_age=3600*24*21
     )
+
+def get_user_by_request(request_user):
+
+    try:
+
+        user = Clerbie.objects.get(nickname=str(request_user))
+
+    except Clerbie.DoesNotExist:
+
+        return None
+
+    return user

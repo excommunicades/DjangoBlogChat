@@ -13,7 +13,8 @@ from authify.serializers import (
     RegistrationConfirmSerializer,
     RequestPasswordRecoverySerializer,
     PasswordRecoverySerializer,
-    LogoutResponseSerializer
+    LogoutResponseSerializer,
+    GetUserDataSerializer,
     )
 from authify.utils import (
     RegisterUser,
@@ -22,6 +23,7 @@ from authify.utils import (
     RequestPasswordRecoveryService,
     PasswordRecoveryService,
     set_tokens_in_cookies,
+    get_user_by_request
 )
 from authify.models import Clerbie
 
@@ -313,3 +315,27 @@ class Password_Recovery(generics.GenericAPIView):
                 return Response({"errors": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Get_User_Data(generics.GenericAPIView):
+
+    """
+    Endpoint for getting user data.
+
+    This endpoint allows the take info about user account.
+    """
+
+    authentication_classes = [JWTAuthentication]
+    serializer_class = GetUserDataSerializer
+
+    def get(self, request, *args, **kwargs):
+        request_user = self.request.user
+
+        user = get_user_by_request(request_user=request_user)
+
+        if user is None:
+            return Response({"error": "You should be authorized."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(user, context={'request_user': request.user})
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

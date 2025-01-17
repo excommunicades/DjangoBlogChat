@@ -150,26 +150,29 @@ class UserWorkExperience(models.Model):
     class Meta:
         db_table = 'UserWorks'
 
-class Invitation(models.Model):
+class Offers(models.Model):
 
+    offer_type = models.CharField(max_length=7, choices=[('request', 'Request'), ('invite', 'Invite')], default='request')
     project = models.ForeignKey(Projects, on_delete=models.CASCADE)
-    sender = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="sent_invitations")
-    receiver = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="received_invitations")
-    invite_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    sender = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="sent_offers")
+    receiver = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="received_offers")
+    offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('declined', 'Declined')], default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+    description = models.TextField(max_length=2000, blank=True, null=True)
+
 
     def __str__(self):
-        return f"Invitation from {self.sender.nickname} to {self.receiver.nickname} for {self.project.name}"
+        return f"Offer from {self.sender.nickname} to {self.receiver.nickname} for {self.project.name}"
 
     class Meta:
-        db_table = 'ProjectInvitations'
+        db_table = 'ProjectOffers'
 
 
 class InboxMessage(models.Model):
     user = models.ForeignKey(Clerbie, on_delete=models.CASCADE)
-    invitation = models.ForeignKey(Invitation, on_delete=models.CASCADE)
+    offer = models.ForeignKey(Offers, on_delete=models.CASCADE)
     message = models.TextField()
     read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

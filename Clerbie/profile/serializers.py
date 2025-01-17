@@ -1,6 +1,6 @@
 from profile.utils.serializers_utils import *
 
-class GetUserDataSerializer(serializers.ModelSerializer):
+class GetUserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for transferring Clerbie data, including related models for friends, hobbies, education, certificates, work experience, etc.
     """
@@ -59,6 +59,21 @@ class GetUserDataSerializer(serializers.ModelSerializer):
             'reactions',
             'projects',
         ]
+
+    def to_representation(self, instance):
+
+        request_user = self.context.get('request_user')
+
+        representation = super().to_representation(instance)
+
+        if instance != request_user:
+            representation.pop('email', None)
+            representation.pop('role', None)
+            representation.pop('two_factor_method', None)
+            representation.pop('status', None)
+
+        return representation
+
     def get_socials(self, obj):
         return {
             "telegram": obj.telegram,
@@ -142,7 +157,7 @@ class CreateProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Projects
-        fields = ['name', 'description', 'technologies']
+        fields = ['id', 'name', 'description', 'technologies']
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -201,13 +216,14 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
 
         return instance
 
-class CreateInvitationSerializer(serializers.ModelSerializer):
+class CreateOfferSerializer(serializers.ModelSerializer):
     receiver = serializers.IntegerField()
     expires_at = serializers.DateTimeField()
+    description = serializers.CharField(required=False, default=None)
 
     class Meta:
-        model = Invitation
-        fields = ['receiver', 'expires_at']
+        model = Offers
+        fields = ['receiver', 'expires_at', 'description']
 
     def validate_receiver(self, value):
         try:
@@ -221,19 +237,20 @@ class CreateInvitationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Expiration date must be in the future.")
         return value
 
-class InvitationResponseSerializer(serializers.ModelSerializer):
-    status = serializers.ChoiceField(choices=[('accepted', 'Accepted'), ('declined', 'Declined')])
 
-    class Meta:
-        model = Invitation
-        fields = ['status']
-
-
-class InvitationSerializer(serializers.ModelSerializer):
+class OfferSerializer(serializers.ModelSerializer):
 
     project = serializers.CharField(source='project.name')
     sender = serializers.CharField(source='sender.nickname')
 
     class Meta:
-        model = Invitation
-        fields = ['invite_code', 'project', 'sender', 'expires_at', 'status', 'created_at']
+        model = Offers
+        fields = ['id','offer_type','offer_code', 'project','description', 'sender', 'expires_at', 'status', 'created_at']
+
+
+class OfferResponseSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(choices=[('accepted', 'Accepted'), ('declined', 'Declined')])
+
+    class Meta:
+        model = Offers
+        fields = ['status']

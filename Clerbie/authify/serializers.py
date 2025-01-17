@@ -7,6 +7,8 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 
 from authify.models import Clerbie
+from authify.choices import USER_ROLE_CHOICES
+from authify.choices import ACCOUNT_STATUS_CHOICES
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -251,3 +253,27 @@ class PasswordRecoverySerializer(serializers.Serializer):
         return attrs
 
 
+class GetUserDataSerializer(serializers.ModelSerializer):
+    """
+    Serializer for transferring Clerbie data, including related models for friends, hobbies, education, certificates, work experience, etc.
+    """
+
+    avatar = serializers.CharField(required=False, allow_null=True)
+    nickname = serializers.CharField()
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    role = serializers.ChoiceField(choices=USER_ROLE_CHOICES)
+    status = serializers.ChoiceField(choices=ACCOUNT_STATUS_CHOICES)
+
+
+    class Meta:
+        model = Clerbie
+        fields = [
+            'id',
+            'username',
+            'avatar',
+            'nickname',
+            'email',
+            'role',
+            'status'
+        ]
