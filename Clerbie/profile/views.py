@@ -2,6 +2,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from django.utils import timezone
 
@@ -20,7 +22,9 @@ from profile.serializers import (
 from profile.utils.views_utils import (
     get_user_by_request,
     IsProjectCreatorOrAdmin,
-    isOfferReceiverOrSender
+    isOfferReceiverOrSender,
+    ProjectBaseView,
+    send_offer_to_receiver
 )
 
 from authify.models import Clerbie
@@ -76,29 +80,27 @@ class Update_Social_Links(generics.UpdateAPIView):
     def get_object(self):
         return Clerbie.objects.get(pk=self.request.user.pk)
 
+
 class Create_Project(generics.CreateAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
 
-class Update_Project(generics.UpdateAPIView):
+class Update_Project(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = UpdateProjectSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsProjectCreatorOrAdmin]
 
 
-class Delete_Project(generics.DestroyAPIView):
+class Delete_Project(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.all()
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsProjectCreatorOrAdmin]
 
     def perform_destroy(self, instance):
 
         super().perform_destroy(instance)
+
 
 class Create_Project_Offer(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
@@ -138,6 +140,24 @@ class Create_Project_Offer(generics.GenericAPIView):
                 expires_at=expires_at,
                 description=description
             )
+
+            websocket_offer_data = {
+                "type": offer.offer_type,
+                "offer_code": str(offer.offer_code),
+                "project": {
+                    "project_id": project.id,
+                    "project_name": project.name,
+                    "project_description": project.description
+                },
+                "sender": {
+                    "sender_name": sender.username,
+                    "sender_nickname": sender.nickname,
+                },
+                "expires_at": offer.expires_at.isoformat(),
+                "description": offer.description if offer.description else None,
+            }
+
+            async_to_sync(send_offer_to_receiver)(receiver.id, websocket_offer_data)
 
             return Response({
                 "offer_type": offer.offer_type,
@@ -182,10 +202,23 @@ class Response_Offer(generics.GenericAPIView):
         if offer.receiver != self.request.user:
             return Response({"detail": "This offer is not for you."}, status=status.HTTP_403_FORBIDDEN)
 
+
         serializer = OfferResponseSerializer(offer, data=request.data)
         if serializer.is_valid():
             offer.status = serializer.validated_data["status"]
             offer.save()
+
+
+        offer_response_data = {
+                "type": str(offer.offer_type) + ' ' + str(offer.status),
+                "offer_code": str(offer.offer_code),
+                "responser": {
+                    "responser_name": user.username,
+                    "responser_nickname": user.nickname,
+                },
+                "expires_at": offer.expires_at.isoformat(),
+                "description": offer.description if offer.description else None,
+            }
 
         if offer.status == 'accepted':
             if user not in offer.project.users.all():
@@ -193,6 +226,14 @@ class Response_Offer(generics.GenericAPIView):
                 offer.project.save()
             else:
                 return Response({"detail": "User already in the project."}, status=status.HTTP_400_BAD_REQUEST)
+
+            async_to_sync(send_offer_to_receiver)(offer.sender.id, offer_response_data)
+
+            return Response({"detail": f"Offer {offer.status}."}, status=status.HTTP_200_OK)
+        
+        else:
+
+            async_to_sync(send_offer_to_receiver)(offer.sender.id, offer_response_data)
 
             return Response({"detail": f"Offer {offer.status}."}, status=status.HTTP_200_OK)
 

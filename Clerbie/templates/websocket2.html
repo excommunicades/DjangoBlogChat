@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Example</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Получаем userId (можно взять его из другого места, например, из cookies или session)
+            const userId = 1;  // Используем 2 как пример
+
+            // URL WebSocket-соединения с передачей userId как параметра
+            const socketUrl = `ws://localhost:8000/ws/community?userId=${userId}`;
+
+            // Создаём WebSocket-соединение
+            const socket = new WebSocket(socketUrl);
+
+            // Открытие соединения
+            socket.onopen = function () {
+                console.log('WebSocket connected!');
+            };
+
+            // Получение сообщений от сервера
+            socket.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                console.log('Received message:', data);
+
+                // Обработка разных типов сообщений
+                if (data.type === 'chat_message') {
+                    // Здесь можно обновить интерфейс чата, например:
+                    const messageElement = document.createElement('p');
+                    messageElement.textContent = `${data.user_id}: ${data.message}`;
+                    document.getElementById('chat-box').appendChild(messageElement);
+                } else if (data.type === 'new_offer') {
+                    // Обработка нового предложения
+                    alert(`New offer received! Code: ${data.offer_code}`);
+                }
+            };
+
+            // Обработка ошибок соединения
+            socket.onerror = function (error) {
+                console.error('WebSocket error:', error);
+            };
+
+            // Закрытие соединения
+            socket.onclose = function () {
+                console.log('WebSocket connection closed');
+            };
+
+            // Отправка сообщений через WebSocket
+            document.getElementById('send-message').addEventListener('click', function () {
+                const message = document.getElementById('message').value;
+                if (message) {
+                    const chatMessage = {
+                        type: 'chat_message',
+                        user_id: userId,
+                        message: message
+                    };
+                    socket.send(JSON.stringify(chatMessage));
+                    document.getElementById('message').value = '';  // Очищаем поле ввода
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>WebSocket Chat</h1>
+
+    <div id="chat-box" style="border: 1px solid #000; padding: 10px; height: 300px; overflow-y: scroll;">
+        <!-- Сообщения чата будут отображаться здесь -->
+    </div>
+
+    <div>
+        <input type="text" id="message" placeholder="Type your message...">
+        <button id="send-message">Send</button>
+    </div>
+</body>
+</html>

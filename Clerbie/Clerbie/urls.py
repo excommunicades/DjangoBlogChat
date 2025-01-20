@@ -44,7 +44,10 @@ urlpatterns = [
                         ), name='swagger-ui'),
 
     # test pages
-    # path('test', TemplateView.as_view(
-    #                     template_name='test.html'), name='user_chat'),
+    path('test', TemplateView.as_view(
+                        template_name='websocket.html'), name='user_chat'),
+    path('test2', TemplateView.as_view(
+                        template_name='websocket2.html'), name='user_chat'),
 
 ]
+
