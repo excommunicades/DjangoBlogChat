@@ -210,7 +210,7 @@ class Response_Offer(generics.GenericAPIView):
 
 
         offer_response_data = {
-                "type": str(offer.offer_type) + ' ' + str(offer.status),
+                "type": str(offer.offer_type) + '_' + str(offer.status),
                 "offer_code": str(offer.offer_code),
                 "responser": {
                     "responser_name": user.username,

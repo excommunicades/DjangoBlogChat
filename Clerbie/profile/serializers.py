@@ -192,13 +192,14 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
         ]
 
 
+
+
     def update(self, instance, validated_data):
 
         user = self.context['request'].user
 
         if instance.creator != user:
             raise PermissionDenied("You do not have permission to update this project.")
-
 
         technologies_data = validated_data.pop('technologies', [])
 
@@ -209,8 +210,7 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
 
         if technologies_data:
             instance.technologies.clear()
-            for tech_data in technologies_data:
-                tech_name = tech_data.get('name')
+            for tech_name in technologies_data:
                 technology, created = Technologies.objects.get_or_create(name=tech_name)
                 instance.technologies.add(technology)
 
