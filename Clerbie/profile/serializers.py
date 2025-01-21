@@ -181,7 +181,7 @@ class CreateProjectSerializer(serializers.ModelSerializer):
 
 class UpdateProjectSerializer(serializers.ModelSerializer):
 
-    technologies = TechnologiesSerializer(many=True, required=False)
+    technologies = serializers.ListField(child=serializers.CharField(), write_only=True)
 
     class Meta:
         model = Projects
@@ -192,8 +192,6 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
         ]
 
 
-
-
     def update(self, instance, validated_data):
 
         user = self.context['request'].user
@@ -201,20 +199,29 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
         if instance.creator != user:
             raise PermissionDenied("You do not have permission to update this project.")
 
+
         technologies_data = validated_data.pop('technologies', [])
 
         instance.name = validated_data.get('name', instance.name)
         instance.description = validated_data.get('description', instance.description)
 
         instance.save()
-
+        print(technologies_data)
         if technologies_data:
             instance.technologies.clear()
-            for tech_name in technologies_data:
-                technology, created = Technologies.objects.get_or_create(name=tech_name)
+            for tech_data in technologies_data:
+                technology, created = Technologies.objects.get_or_create(name=tech_data)
                 instance.technologies.add(technology)
 
         return instance
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        technologies = instance.technologies.all()
+        representation['technologies'] = [tech.name for tech in technologies]
+
+        return representation
 
 class CreateOfferSerializer(serializers.ModelSerializer):
     receiver = serializers.IntegerField()
