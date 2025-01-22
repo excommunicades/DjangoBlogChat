@@ -25,12 +25,15 @@ class Clerbie_friends(models.Model):
 
     user = models.ForeignKey(Clerbie, related_name='friends', on_delete=models.CASCADE)
     friend = models.ForeignKey(Clerbie, related_name='friends_with', on_delete=models.CASCADE)
+    offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    expires_at = models.DateTimeField()
+    description = models.TextField(max_length=7000, null=True, blank=True)
     status = models.CharField(
         max_length=10,
         choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('blocked', 'Blocked')],
         default='pending'
     )
-    added_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         constraints = [
@@ -53,7 +56,7 @@ class Clerbie_hobbies(models.Model):
     user = models.ForeignKey(Clerbie, related_name='hobbies', on_delete=models.CASCADE)
     hobby = models.ForeignKey(Hobby, related_name='users', on_delete=models.CASCADE)
     description = models.TextField(max_length=7000, null=True, blank=True)
-    added_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.nickname}'s hobby: {self.hobby.name}"
@@ -73,7 +76,7 @@ class Clerbie_education(models.Model):
     user = models.ForeignKey(Clerbie, related_name='education', on_delete=models.CASCADE)
     education = models.ManyToManyField(Education, related_name='users')
     description = models.TextField(max_length=7000)
-    added_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.nickname}'s hobby: {self.hobby.name}"
@@ -94,7 +97,7 @@ class Clerbie_certificates(models.Model):
     user = models.ForeignKey(Clerbie, related_name='certificates', on_delete=models.CASCADE)
     certificates = models.ManyToManyField(Certificates, related_name='users')
     description = models.TextField(max_length=7000,  blank=True, null=True)
-    added_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.nickname}'s hobby: {self.hobby.name}"

@@ -206,7 +206,7 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
 
         instance.save()
-        print(technologies_data)
+
         if technologies_data:
             instance.technologies.clear()
             for tech_data in technologies_data:
@@ -245,14 +245,34 @@ class CreateOfferSerializer(serializers.ModelSerializer):
         return value
 
 
-class OfferSerializer(serializers.ModelSerializer):
+class ProjectOfferSerializer(serializers.ModelSerializer):
 
     project = serializers.CharField(source='project.name')
     sender = serializers.CharField(source='sender.nickname')
-
+    
     class Meta:
         model = Offers
         fields = ['id','offer_type','offer_code', 'project','description', 'sender', 'expires_at', 'status', 'created_at']
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        if 'offer_type' in representation:
+            representation['offer_type'] = f"project_{representation['offer_type']}"
+
+        return representation
+class FriendsOffersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clerbie_friends
+        fields = [
+            'id',
+            'status',
+            'offer_code',
+            'user_id',
+            'friend_id',
+            'created_at',
+            'expires_at',
+            'description']
 
 
 class OfferResponseSerializer(serializers.ModelSerializer):
@@ -261,3 +281,43 @@ class OfferResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offers
         fields = ['status']
+
+
+class CreateFriendshipSerializer(serializers.ModelSerializer):
+
+    friend_id = serializers.IntegerField(read_only=True)
+    expires_at = serializers.DateTimeField()
+    description = serializers.CharField(required=False, default=None)
+
+
+    class  Meta:
+        model = Clerbie_friends
+        fields = [
+            'friend_id',
+            'expires_at',
+            'description'
+        ]
+
+    def validate_expires_at(self, value):
+        if value <= timezone.now():
+            raise serializers.ValidationError("Expiration date must be in the future.")
+        return value
+
+class FriendshipResponseSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=[('accepted', 'Accepted'), ('declined', 'Declined')])
+
+    class Meta:
+        model = Clerbie_friends
+        fields = ['status']
+
+
+class FriendSerializer(serializers.ModelSerializer):
+
+    id = serializers.IntegerField(source='friend.id')
+    nickname = serializers.CharField(source='friend.nickname')
+    username = serializers.CharField(source='friend.username')  # добавлено поле
+    avatar = serializers.URLField(source='friend.avatar')
+
+    class Meta:
+        model = Clerbie_friends
+        fields = ['id', 'nickname', 'username', 'avatar']

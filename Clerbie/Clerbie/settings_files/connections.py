@@ -10,14 +10,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
-FRONTEND_URL = "http://localhost:4200"
+# FRONTEND_URL = "http://localhost:4200"
+FRONTEND_URL = "https://clerbieclientcite.web.app/"
 
 BACKEND_URL = "http://localhost:8000"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
+    "https://clerbieclientcite.web.app"
 ]
-
+CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ALLOW_CREDENTIALS = True
 

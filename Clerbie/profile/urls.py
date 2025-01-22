@@ -13,7 +13,11 @@ from profile.views import(
     Get_Inbox, 
     Response_Offer,
     Delete_Offer,
-    Get_Project_List
+    Get_Project_List,
+    Create_Friendship,
+    Respond_To_Friendship,
+    GetFriendsList,
+    Remove_Friendship
 )
 
 urlpatterns = [
@@ -25,6 +29,13 @@ urlpatterns = [
     # Update profile data
     path('update-general', Update_User_GeneralData.as_view(), name='update-general-data'),
     path('update-socials', Update_Social_Links.as_view(), name='update-social-links'),
+
+    # Friend Actions
+
+    path('friends/add/<int:friend_id>', Create_Friendship.as_view(), name='offer-to-user-add-to-friendlist'),
+    path('friends/response/<uuid:offer_code>', Respond_To_Friendship.as_view(), name='repsonse-to-friend-invite'),
+    path('friends/remove/<int:friend_id>', Remove_Friendship.as_view(), name='remove-friend-from-'),
+    path('friends/list', GetFriendsList.as_view(), name='get-friend-list'),
 
     # Projects Actions
     path('projects', Get_Project_List.as_view(), name='project-list'),

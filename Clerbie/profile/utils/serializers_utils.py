@@ -39,6 +39,18 @@ class ClerbieSerializer(serializers.ModelSerializer):
         model = Clerbie
         fields = ['id', 'nickname', 'email', 'avatar']
 
+class FriendOfferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clerbie_friends
+        fields = [
+            'id',
+            'status',
+            'offer_code',
+            'user_id',
+            'friend_id',
+            'expires_at',
+            'description']
+
 class HobbySerializer(serializers.ModelSerializer):
     class Meta:
         model = Hobby
