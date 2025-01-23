@@ -315,7 +315,7 @@ class FriendSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(source='friend.id')
     nickname = serializers.CharField(source='friend.nickname')
-    username = serializers.CharField(source='friend.username')  # добавлено поле
+    username = serializers.CharField(source='friend.username')
     avatar = serializers.URLField(source='friend.avatar')
 
     class Meta:

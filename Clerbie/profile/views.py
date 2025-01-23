@@ -8,31 +8,30 @@ from django.utils import timezone
 from django.db.models import Q
 
 from profile.serializers import (
-    GetUserProfileSerializer,
-    UpdateGeneralDataSerializer,
-    SocialLinksSerializer,
-    CreateProjectSerializer,
-    UpdateProjectSerializer,
-    OfferResponseSerializer,
-    CreateOfferSerializer,
+    FriendSerializer,
+    FriendSerializer,
     ProjectSerializer,
-    FriendSerializer,
-    CreateFriendshipSerializer,
-    FriendshipResponseSerializer,
-    FriendSerializer,
-    FriendsOffersSerializer,
+    CreateOfferSerializer,
+    SocialLinksSerializer,
     ProjectOfferSerializer,
+    UpdateProjectSerializer,
+    CreateProjectSerializer,
+    OfferResponseSerializer,
+    FriendsOffersSerializer,
+    GetUserProfileSerializer,
+    CreateFriendshipSerializer,
+    UpdateGeneralDataSerializer,
+    FriendshipResponseSerializer,
 )
 from profile.utils.views_utils import (
-    IsProjectCreatorOrAdmin,
-    isOfferReceiverOrSender,
     ProjectBaseView,
     get_user_by_request,
-    send_offer_to_receiver
+    send_offer_to_receiver,
+    IsProjectCreatorOrAdmin,
+    isOfferReceiverOrSender,
 )
 
 from authify.models import Clerbie
-
 from profile.models import (
     Projects,
     Offers,

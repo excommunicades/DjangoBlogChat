@@ -1,21 +1,21 @@
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
+    TokenObtainPairView,
 )
 
 from django.urls import path
-from django.conf.urls.static import static
 from django.conf import settings
+from django.conf.urls.static import static
 
 from authify.views import (
-    RegisterUser,
     LoginUser,
     LogoutUser,
     GetUserData,
+    RegisterUser,
     RegisterConfirm,
-    RequestPasswordRecovery,
     PasswordRecovery,
-    refresh_token_view
+    refresh_token_view,
+    RequestPasswordRecovery,
 )
 
 

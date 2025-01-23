@@ -1,6 +1,6 @@
+import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from websocket.websocket_community_action import CommunityAction
-import json
 
 connected_users = {}
 

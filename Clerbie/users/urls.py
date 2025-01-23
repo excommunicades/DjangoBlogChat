@@ -4,7 +4,7 @@ from django.conf import settings
 
 from users.views import (
     GetUserList,
-    GetUserData
+    GetUserData,
 )
 
 urlpatterns = [

@@ -1,29 +1,29 @@
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import generics, status, permissions
-from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import generics, status, permissions
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 
 from authify.serializers import (
+    GetUserDataSerializer,
     RegistrationSerializer,
     AuthorizationSerializer,
+    LogoutResponseSerializer,
+    PasswordRecoverySerializer,
     RegistrationConfirmSerializer,
     RequestPasswordRecoverySerializer,
-    PasswordRecoverySerializer,
-    LogoutResponseSerializer,
-    GetUserDataSerializer,
     )
 from authify.utils import (
     RegisterUser,
-    RegistrationConfirmationService,
+    get_user_by_request,
     AuthenticationService,
-    RequestPasswordRecoveryService,
-    PasswordRecoveryService,
     set_tokens_in_cookies,
-    get_user_by_request
+    PasswordRecoveryService,
+    RegistrationConfirmationService,
+    RequestPasswordRecoveryService,
 )
 from authify.models import Clerbie
 

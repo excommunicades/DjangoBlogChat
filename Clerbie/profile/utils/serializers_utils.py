@@ -8,28 +8,27 @@ from django.utils import timezone
 
 from authify.models import Clerbie
 from profile.models import (
+    Work,
+    Hobby,
+    Offers,
+    Projects,
+    Education,
+    Technologies,
+    Certificates,
+    InboxMessage,
+    UserWorkExperience,
     Clerbie_friends,
     Clerbie_hobbies,
     Clerbie_education,
-    Clerbie_certificates,
     Clerbie_reactions,
-    UserWorkExperience,
-    Hobby,
-    Education,
-    Technologies,
-    Work,
-    UserWorkExperience,
-    Certificates,
-    Projects,
-    Offers,
-    InboxMessage
+    Clerbie_certificates,
 )
 
 from authify.choices import (
-    USER_ROLE_CHOICES,
-    GENDER_CHOICES,
     COUNTRIES,
     TIME_ZONES,
+    GENDER_CHOICES,
+    USER_ROLE_CHOICES,
     ACCOUNT_STATUS_CHOICES,
     PROGRAMMING_ROLES_CHOICES,
 )
@@ -45,10 +44,10 @@ class FriendOfferSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'status',
-            'offer_code',
             'user_id',
             'friend_id',
             'expires_at',
+            'offer_code',
             'description']
 
 class HobbySerializer(serializers.ModelSerializer):

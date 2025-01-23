@@ -6,6 +6,7 @@ from authify.models import Clerbie
 from profile.models import Clerbie_friends
 
 class UserListSerializer(serializers.ModelSerializer):
+
     friend_info = serializers.SerializerMethodField()
 
     class Meta:
@@ -23,13 +24,18 @@ class UserListSerializer(serializers.ModelSerializer):
         if not request_user:
             return None
 
-        try:
-            friendship = Clerbie_friends.objects.get(Q(user=request_user, friend=obj) | Q(user=obj, friend=request_user))
-            return {
-                'offer_code': friendship.offer_code,
-                'status': friendship.status
-            }
-        except Clerbie_friends.DoesNotExist:
+        if request_user.is_authenticated:
+            try:
+                friendship = Clerbie_friends.objects.get(Q(user=request_user, friend=obj) | Q(user=obj, friend=request_user))
+                if friendship.status == 'declined':
+                    return None
+                return {
+                    'offer_code': friendship.offer_code,
+                    'status': friendship.status
+                }
+            except Clerbie_friends.DoesNotExist:
+                return None
+        else:
             return None
 
 class UserDataSerializer(serializers.ModelSerializer):

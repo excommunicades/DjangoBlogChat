@@ -1,6 +1,5 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.exceptions import ValidationError
-
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from authify.models import Clerbie

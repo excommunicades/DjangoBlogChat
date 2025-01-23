@@ -4,20 +4,20 @@ from django.conf import settings
 
 from profile.views import(
     GetProfile,
-    UpdateUserGeneralData,
-    UpdateSocialLinks,
+    GetInbox, 
+    DeleteOffer,
     CreateProject,
     UpdateProject,
     DeleteProject,
-    CreateProjectOffer, 
-    GetInbox, 
     ResponseOffer,
-    DeleteOffer,
     GetProjectList,
-    CreateFriendship,
-    RespondToFriendship,
     GetFriendsList,
-    RemoveFriendship
+    CreateFriendship,
+    RemoveFriendship,
+    UpdateSocialLinks,
+    CreateProjectOffer, 
+    RespondToFriendship,
+    UpdateUserGeneralData,
 )
 
 urlpatterns = [

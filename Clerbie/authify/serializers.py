@@ -2,8 +2,8 @@ import re
 
 from rest_framework import serializers, status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.http import JsonResponse
 
+from django.http import JsonResponse
 from django.contrib.auth import authenticate
 
 from authify.models import Clerbie

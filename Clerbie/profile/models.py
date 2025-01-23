@@ -6,7 +6,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 
 from authify.models import Clerbie
-
 from profile.choices import (
     REACTIONS,
     STATUS_CHOICES,
