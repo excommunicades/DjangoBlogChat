@@ -1,6 +1,8 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.exceptions import ValidationError
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from authify.models import Clerbie
 
 from users.serializers import (
@@ -17,6 +19,7 @@ class User_List(ListAPIView):
     '''Returns a list of users'''
 
     serializer_class = UserListSerializer
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
 
