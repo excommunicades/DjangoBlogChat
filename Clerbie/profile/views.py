@@ -2,7 +2,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 from django.utils import timezone
@@ -22,14 +21,13 @@ from profile.serializers import (
     FriendshipResponseSerializer,
     FriendSerializer,
     FriendsOffersSerializer,
-    
     ProjectOfferSerializer,
 )
 from profile.utils.views_utils import (
-    get_user_by_request,
     IsProjectCreatorOrAdmin,
     isOfferReceiverOrSender,
     ProjectBaseView,
+    get_user_by_request,
     send_offer_to_receiver
 )
 
@@ -41,7 +39,7 @@ from profile.models import (
     Clerbie_friends,
 )
 
-class Get_Profile(generics.GenericAPIView):
+class GetProfile(generics.GenericAPIView):
 
     """
     Endpoint for getting user data.
@@ -68,7 +66,7 @@ class Get_Profile(generics.GenericAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class Update_User_GeneralData(generics.UpdateAPIView):
+class UpdateUserGeneralData(generics.UpdateAPIView):
 
     queryset = Clerbie.objects.all()
     serializer_class = UpdateGeneralDataSerializer
@@ -78,7 +76,7 @@ class Update_User_GeneralData(generics.UpdateAPIView):
     def get_object(self):
         return Clerbie.objects.get(pk=self.request.user.pk)
 
-class Update_Social_Links(generics.UpdateAPIView):
+class UpdateSocialLinks(generics.UpdateAPIView):
     queryset = Clerbie.objects.all()
     serializer_class = SocialLinksSerializer
     authentication_classes = [JWTAuthentication]
@@ -88,19 +86,19 @@ class Update_Social_Links(generics.UpdateAPIView):
         return Clerbie.objects.get(pk=self.request.user.pk)
 
 
-class Create_Project(generics.CreateAPIView):
+class CreateProject(generics.CreateAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
 
-class Update_Project(ProjectBaseView, generics.UpdateAPIView):
+class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = UpdateProjectSerializer
 
 
-class Delete_Project(ProjectBaseView, generics.DestroyAPIView):
+class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.all()
 
@@ -109,7 +107,7 @@ class Delete_Project(ProjectBaseView, generics.DestroyAPIView):
         super().perform_destroy(instance)
 
 
-class Create_Project_Offer(generics.GenericAPIView):
+class CreateProjectOffer(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = CreateOfferSerializer
 
@@ -179,7 +177,7 @@ class Create_Project_Offer(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class Get_Inbox(generics.GenericAPIView):
+class GetInbox(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     # serializer_class = OfferSerializer
 
@@ -201,7 +199,7 @@ class Get_Inbox(generics.GenericAPIView):
             }
         }, status=status.HTTP_200_OK)
 
-class Response_Offer(generics.GenericAPIView):
+class ResponseOffer(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = OfferResponseSerializer
 
@@ -254,7 +252,7 @@ class Response_Offer(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class Delete_Offer(generics.DestroyAPIView):
+class DeleteOffer(generics.DestroyAPIView):
 
     queryset = Offers.objects.all()
     serializer_class = CreateProjectSerializer
@@ -262,12 +260,12 @@ class Delete_Offer(generics.DestroyAPIView):
     permission_classes = [isOfferReceiverOrSender]
 
 
-class Get_Project_List(generics.ListAPIView):
+class GetProjectList(generics.ListAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
 
-class Create_Friendship(generics.GenericAPIView):
+class CreateFriendship(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
     serializer_class = CreateFriendshipSerializer
@@ -331,7 +329,7 @@ class Create_Friendship(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Respond_To_Friendship(generics.GenericAPIView):
+class RespondToFriendship(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
 
@@ -379,7 +377,7 @@ class Respond_To_Friendship(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Respond_To_Friendship(generics.GenericAPIView):
+class RespondToFriendship(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
 
@@ -428,7 +426,7 @@ class Respond_To_Friendship(generics.GenericAPIView):
 
 
 
-class Remove_Friendship(generics.GenericAPIView):
+class RemoveFriendship(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
 

@@ -28,7 +28,7 @@ from authify.utils import (
 from authify.models import Clerbie
 
 
-class Register_User(generics.CreateAPIView):
+class RegisterUser(generics.CreateAPIView):
 
     """
     Endpoint for user registration.
@@ -77,7 +77,7 @@ class Register_User(generics.CreateAPIView):
         )
 
 
-class Register_Confirm(generics.GenericAPIView):
+class RegisterConfirm(generics.GenericAPIView):
 
     """
     Endpoint for confirming registration with a code.
@@ -115,7 +115,7 @@ class Register_Confirm(generics.GenericAPIView):
         return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Login_User(generics.GenericAPIView):
+class LoginUser(generics.GenericAPIView):
 
     """
     Endpoint for user authentication.
@@ -193,7 +193,7 @@ class Login_User(generics.GenericAPIView):
 
             return Response({'errors': {'error': str(e)}}, status=status.HTTP_401_UNAUTHORIZED)
 
-class Logout_User(generics.GenericAPIView):
+class LogoutUser(generics.GenericAPIView):
 
     '''Logoutes a user from his session.
 
@@ -241,7 +241,7 @@ def refresh_token_view(request):
         return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class Request_Password_Recovery(generics.GenericAPIView):
+class RequestPasswordRecovery(generics.GenericAPIView):
 
     """
     Endpoint for requesting a password recovery code.
@@ -282,7 +282,7 @@ class Request_Password_Recovery(generics.GenericAPIView):
         return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Password_Recovery(generics.GenericAPIView):
+class PasswordRecovery(generics.GenericAPIView):
 
     """
     Endpoint for submitting the password recovery code and new password.
@@ -317,7 +317,7 @@ class Password_Recovery(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Get_User_Data(generics.GenericAPIView):
+class GetUserData(generics.GenericAPIView):
 
     """
     Endpoint for getting user data.

@@ -14,7 +14,7 @@ from users.utils.views_utils import (
     user_pagination
 )
 
-class User_List(ListAPIView):
+class GetUserList(ListAPIView):
 
     '''Returns a list of users'''
 
@@ -36,7 +36,7 @@ class User_List(ListAPIView):
         return user_pagination(page, page_size, user)
 
 
-class User_Data(RetrieveAPIView):
+class GetUserData(RetrieveAPIView):
 
     '''Retrieve user data by user id'''
 
