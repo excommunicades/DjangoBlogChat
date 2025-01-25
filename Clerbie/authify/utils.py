@@ -33,7 +33,7 @@ class RegistrationService:
         cache.set(self.code, self.user_data, timeout=180)
 
 
-class RegisterUser:
+class RegisterUserUtil:
 
     def __init__(self, serializer_data):
 

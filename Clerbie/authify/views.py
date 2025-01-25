@@ -17,7 +17,7 @@ from authify.serializers import (
     RequestPasswordRecoverySerializer,
     )
 from authify.utils import (
-    RegisterUser,
+    RegisterUserUtil,
     get_user_by_request,
     AuthenticationService,
     set_tokens_in_cookies,
@@ -45,7 +45,7 @@ class RegisterUser(generics.CreateAPIView):
 
             user_data = serializer.validated_data
 
-            registration_service = RegisterUser(user_data)
+            registration_service = RegisterUserUtil(user_data)
 
             code = registration_service.execute()
 

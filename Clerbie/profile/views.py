@@ -352,6 +352,11 @@ class RespondToFriendship(generics.GenericAPIView):
             expires_at_str = friendship.expires_at.isoformat() if friendship.expires_at else None
             
             if status_value:
+                if status_value == 'declined':
+
+                    friendship.delete()
+                    return Response({"detail": "Friend offer was declined."}, status=status.HTTP_204_NO_CONTENT)
+
                 if friendship.status == 'pending':
                     friendship.status = status_value
                     friendship.save()
@@ -374,55 +379,6 @@ class RespondToFriendship(generics.GenericAPIView):
                     return Response({"detail": "Friend offer was already responded."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class RespondToFriendship(generics.GenericAPIView):
-    authentication_classes = [JWTAuthentication]
-    serializer_class = FriendshipResponseSerializer
-
-    def post(self, request, offer_code):
-
-        try:
-            friendship = Clerbie_friends.objects.get(offer_code=offer_code)
-        except Clerbie_friends.DoesNotExist:
-            return Response({"error": "Friendship request not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        user = request.user
-
-        if friendship.friend != user:
-            return Response({"error": "This request is not for you."}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = FriendshipResponseSerializer(data=request.data)
-
-        if serializer.is_valid():
-
-            status_value = serializer.validated_data['status']
-            expires_at_str = friendship.expires_at.isoformat() if friendship.expires_at else None
-            
-            if status_value:
-                if friendship.status == 'pending':
-                    friendship.status = status_value
-                    friendship.save()
-                    offer_response_data = {
-                                "type": 'friend_invite_' + status_value, 
-                                "offer_code": str(friendship.offer_code),
-                                "responder": {
-                                    "id": user.id,
-                                    "nickname": user.nickname,
-                                    "username": user.username,
-                                },
-                                "status": status_value,
-                                "expires_at": expires_at_str,
-                                "description": friendship.description if friendship.description else None,
-                            }
-                    async_to_sync(send_offer_to_receiver)(friendship.user.id, offer_response_data)
-                    return Response({"detail": f"Friend offer with was {status_value}!"}, status=status.HTTP_200_OK)
-
-                else:
-                    return Response({"detail": "Friend offer was already responded."}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class RemoveFriendship(generics.GenericAPIView):
@@ -442,15 +398,31 @@ class RemoveFriendship(generics.GenericAPIView):
         friends_offer.delete()
         return Response({"detail": "Friend was removed successfully."}, status=status.HTTP_204_NO_CONTENT)
 
-
 class GetFriendsList(generics.ListAPIView):
-
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendSerializer
 
     def get_queryset(self):
-        user = self.request.user
 
-        queryset = Clerbie_friends.objects.filter(Q(user=user) | Q(friend=user) & Q(status='accepted'))
-        
+        user = self.request.user
+        queryset = Clerbie_friends.objects.all()
+
         return queryset
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.get_queryset()
+
+        friends = queryset.filter(status='accepted')
+        sent_requests = queryset.filter(user=request.user, status='pending')
+        received_requests = queryset.filter(friend=request.user, status='pending')
+
+        friends_data = FriendSerializer(friends, many=True).data
+        sent_requests_data = FriendSerializer(sent_requests, many=True).data
+        received_requests_data = FriendSerializer(received_requests, many=True).data
+
+        return Response({
+            'friends': friends_data,
+            'sent_requests': sent_requests_data,
+            'received_requests': received_requests_data,
+        })
