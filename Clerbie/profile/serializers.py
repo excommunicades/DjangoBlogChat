@@ -317,7 +317,8 @@ class FriendSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(source='friend.nickname')
     username = serializers.CharField(source='friend.username')
     avatar = serializers.URLField(source='friend.avatar')
+    offer_code = serializers.CharField(required=False)
 
     class Meta:
         model = Clerbie_friends
-        fields = ['id', 'nickname', 'username', 'avatar']
+        fields = ['id', 'nickname', 'username', 'avatar', 'offer_code']

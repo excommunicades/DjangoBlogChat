@@ -14,6 +14,7 @@ from profile.views import(
     GetFriendsList,
     CreateFriendship,
     RemoveFriendship,
+    DeleteFriendOffer,
     UpdateSocialLinks,
     CreateProjectOffer, 
     RespondToFriendship,
@@ -33,6 +34,7 @@ urlpatterns = [
     # Friend Actions
 
     path('friends/add/<int:friend_id>', CreateFriendship.as_view(), name='offer-to-user-add-to-friendlist'),
+    path('friends/delete-offer/<uuid:offer_code>', DeleteFriendOffer.as_view(), name='delete-friend-offer'),
     path('friends/response/<uuid:offer_code>', RespondToFriendship.as_view(), name='repsonse-to-friend-invite'),
     path('friends/remove/<int:friend_id>', RemoveFriendship.as_view(), name='remove-friend-from-'),
     path('friends/list', GetFriendsList.as_view(), name='get-friend-list'),

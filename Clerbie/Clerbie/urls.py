@@ -36,7 +36,7 @@ urlpatterns = [
 
     # swagger
     path('api_schema', get_schema_view(title='Swagger', description='Guide for the REST API'), name='api_schema'),
-    path('swagger', TemplateView.as_view(
+    path('swagger/', TemplateView.as_view(
                         template_name='docs.html',
                         extra_context={'schema_url':'api_schema'}
                         ), name='swagger-ui'),

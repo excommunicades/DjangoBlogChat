@@ -91,10 +91,12 @@ class CreateProject(generics.CreateAPIView):
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
 
+
 class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = UpdateProjectSerializer
+
 
 
 class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
@@ -178,7 +180,7 @@ class CreateProjectOffer(generics.GenericAPIView):
 
 class GetInbox(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
-    # serializer_class = OfferSerializer
+    serializer_class = FriendSerializer
 
     def get(self, request):
         user = request.user
@@ -398,6 +400,27 @@ class RemoveFriendship(generics.GenericAPIView):
         friends_offer.delete()
         return Response({"detail": "Friend was removed successfully."}, status=status.HTTP_204_NO_CONTENT)
 
+
+class DeleteFriendOffer(generics.DestroyAPIView):
+
+    '''deletes user's friend offer'''
+
+    authentication_classes = [JWTAuthentication]
+    serializer_class = FriendsOffersSerializer
+    lookup_field = 'offer_code'
+
+    def get_queryset(self):
+        queryset = Clerbie_friends.objects.filter(offer_code=self.kwargs['offer_code'])
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.user == self.request.user:
+            self.perform_destroy(instance)
+            return Response({"detail": "Offer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+        else:
+            return Response({"errors":"You can not delete foreign offer"}, status=status.HTTP_403_FORBIDDEN)
 class GetFriendsList(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendSerializer
