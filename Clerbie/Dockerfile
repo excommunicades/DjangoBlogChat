@@ -6,8 +6,8 @@ RUN apt-get update && \
     build-essential \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
