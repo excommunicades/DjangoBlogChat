@@ -25,7 +25,7 @@ class Clerbie_friends(models.Model):
     user = models.ForeignKey(Clerbie, related_name='friends', on_delete=models.CASCADE)
     friend = models.ForeignKey(Clerbie, related_name='friends_with', on_delete=models.CASCADE)
     offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(null=True, blank=True)
     description = models.TextField(max_length=7000, null=True, blank=True)
     status = models.CharField(
         max_length=10,
@@ -161,7 +161,7 @@ class Offers(models.Model):
     offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('declined', 'Declined')], default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(null=True, blank=True)
     description = models.TextField(max_length=2000, blank=True, null=True)
 
 

@@ -137,3 +137,19 @@ class Clerbie(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = 'UserProfile'
+
+
+class BlackList(models.Model):
+
+    ''' BlackList functionallity model '''
+
+    user = models.ForeignKey('Clerbie', on_delete=models.CASCADE, related_name='blocklist_users')
+    blocked_user = models.ForeignKey('Clerbie', on_delete=models.CASCADE, related_name='blocked_by_users')
+    blocked_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'UserBlackList'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'blocked_user'], name='unique_block_entry')
+        ]

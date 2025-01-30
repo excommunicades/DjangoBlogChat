@@ -29,6 +29,7 @@ from profile.utils.views_utils import (
     send_offer_to_receiver,
     IsProjectCreatorOrAdmin,
     isOfferReceiverOrSender,
+    isNotBlockedUser,
 )
 
 from authify.models import Clerbie
@@ -47,7 +48,7 @@ class GetProfile(generics.GenericAPIView):
     """
 
     authentication_classes = [JWTAuthentication]
-    permission_classes = [AllowAny]
+    permission_classes = [isNotBlockedUser, AllowAny]
     serializer_class = GetUserProfileSerializer
 
     def get(self, request, *args, **kwargs):

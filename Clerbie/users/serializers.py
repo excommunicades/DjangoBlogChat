@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from django.db.models import Q
 
-from authify.models import Clerbie
+from authify.models import Clerbie, BlackList
 from profile.models import Clerbie_friends
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -48,3 +48,28 @@ class UserDataSerializer(serializers.ModelSerializer):
             'id',
             'nickname',
             'username']
+
+
+class BlockuserSerializer(serializers.ModelSerializer):
+
+    '''Adds blocked user to db'''
+
+    user = serializers.CharField(read_only=True)
+    blocked_user = serializers.CharField(read_only=True)
+    class Meta:
+        model = BlackList
+        fields = [
+            'user',
+            'blocked_user',
+            'expires_at'
+        ]
+
+    def create(self, validated_data):
+
+        return super().create(validated_data)
+
+    def validate(self, data):
+
+        if 'user' in data or 'blocked_user' in data:
+            raise serializers.ValidationError("You cannot provide 'user' or 'blocked_user' fields in the request.")
+        return data

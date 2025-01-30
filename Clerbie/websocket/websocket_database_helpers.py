@@ -14,6 +14,16 @@ def get_user_by_id(user_id):
         return None
 
 @database_sync_to_async
+def is_user_blocked(blocked_user, user):
+
+    from authify.models import BlackList
+
+    try:
+        return BlackList.objects.get(blocked_user=blocked_user, user__id=user)
+    except Clerbie.DoesNotExist:
+        return None
+
+@database_sync_to_async
 def add_user_to_chat(chat_name, user):
 
     from chat.models import ChatRoom

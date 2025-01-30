@@ -5,6 +5,7 @@ from websocket.websocket_database_helpers import (
     delete_chat,
     pin_message,
     reply_message,
+    is_user_blocked,
     get_user_chats,
     delete_message,
     update_message,
@@ -30,6 +31,19 @@ class CommunityAction:
 
         participants_ids = list(map(int, participants))
         participants_ids.sort()
+        if len(participants_ids) == 2:
+            try:
+                user = await is_user_blocked(sender_id, [x for x in participants_ids if x != sender_id][0])
+                created_chat_channel = connected_users.get(sender_id)
+
+                if created_chat_channel:
+                    await created_chat_channel.send(text_data=json.dumps({
+                        'type': 'blocked_action',
+                        'errors': 'You are blocked by this user.',
+                    }))
+                    return
+            except:
+                pass
 
         chat_name = f"chat_{'_'.join(map(str, participants_ids))}"
 
