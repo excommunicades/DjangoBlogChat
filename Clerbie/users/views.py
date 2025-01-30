@@ -70,7 +70,8 @@ class BlockUserView(generics.GenericAPIView):
 
             except IntegrityError:
 
-                return Response({'errors': 'This user has already blocked this user.'}, status=status.HTTP_409_CONFLICT)
+                BlackList.objects.get(blocked_user_id=blocked_user_id).delete()
+                return Response({'message': 'Block removed from this user.'}, status=status.HTTP_204_NO_CONTENT)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
