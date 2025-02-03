@@ -11,6 +11,7 @@ from users.serializers import (
     UserDataSerializer,
     UserListSerializer,
     BlockuserSerializer,
+    BlockUserListSerializer,
 )
 
 from users.utils.views_utils import (
@@ -76,3 +77,15 @@ class BlockUserView(generics.GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({'errors': 'Blocked user does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class BlockUserListView(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    serializer_class = BlockUserListSerializer
+
+    def get_queryset(self):
+        
+        queryset = BlackList.objects.filter(user=self.request.user)
+        return queryset
+    

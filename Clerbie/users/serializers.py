@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from authify.models import Clerbie, BlackList
 from profile.models import Clerbie_friends
+from profile.utils.serializers_utils import ClerbieSerializer
 
 class UserListSerializer(serializers.ModelSerializer):
 
@@ -73,3 +74,25 @@ class BlockuserSerializer(serializers.ModelSerializer):
         if 'user' in data or 'blocked_user' in data:
             raise serializers.ValidationError("You cannot provide 'user' or 'blocked_user' fields in the request.")
         return data
+
+
+class BlockUserListSerializer(serializers.ModelSerializer):
+
+    '''Serializer for list of blocked user'''
+
+    blocked_user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BlackList
+        fields = [
+            'expires_at',
+            'blocked_user',
+        ]
+
+    def get_blocked_user(self, obj):
+        print(obj)
+        return {
+            'id': obj.blocked_user.id,
+            'username': obj.blocked_user.username,
+            'nickname': obj.blocked_user.nickname
+        }

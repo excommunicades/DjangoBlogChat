@@ -388,7 +388,7 @@ class RemoveFriendship(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
 
-    def post(self, request, friend_id):
+    def delete(self, request, friend_id):
 
         user = request.user
 
@@ -396,10 +396,10 @@ class RemoveFriendship(generics.GenericAPIView):
         if not friends_offer:
             friends_offer = Clerbie_friends.objects.filter(Q(user=friend_id) & Q(friend=user))
         if not friends_offer:
-            return Response({"detail": "Friend does not exist."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Friend does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
         friends_offer.delete()
-        return Response({"detail": "Friend was removed successfully."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"error": "Friend was removed successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class DeleteFriendOffer(generics.DestroyAPIView):
