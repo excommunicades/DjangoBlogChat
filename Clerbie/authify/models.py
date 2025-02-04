@@ -6,7 +6,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
-
 from authify.choices import (
     COUNTRIES,
     TIME_ZONES,
@@ -89,6 +88,9 @@ class Clerbie(AbstractBaseUser, PermissionsMixin):
                         max_length=6,
                         choices=GENDER_CHOICES,
                         default='other')
+
+    about_me = models.TextField(max_length=50000, blank=True, null=True)
+    technologies = models.ManyToManyField('profile.Technologies', blank=True, related_name='user_techonlogies')
 
     behavior_points = models.IntegerField(default=1000)
     registered_at = models.DateTimeField(auto_now_add=True)

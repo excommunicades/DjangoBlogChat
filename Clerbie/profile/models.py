@@ -22,8 +22,8 @@ class Clerbie_reactions(models.Model):
         db_table = 'UserReactions'
 class Clerbie_friends(models.Model):
 
-    user = models.ForeignKey(Clerbie, related_name='friends', on_delete=models.CASCADE)
-    friend = models.ForeignKey(Clerbie, related_name='friends_with', on_delete=models.CASCADE)
+    user1 = models.ForeignKey(Clerbie, related_name='friends', on_delete=models.CASCADE)
+    user2 = models.ForeignKey(Clerbie, related_name='friends_with', on_delete=models.CASCADE)
     offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     description = models.TextField(max_length=7000, null=True, blank=True)
@@ -33,10 +33,10 @@ class Clerbie_friends(models.Model):
         default='pending'
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'friend'], name='unique_friendship')
+            models.UniqueConstraint(fields=['user1', 'user2'], name='unique_friendship')
         ]
 
     class Meta:

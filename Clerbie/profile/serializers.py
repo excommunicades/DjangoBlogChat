@@ -89,9 +89,11 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         }
 
     def get_friends(self, obj):
-        friends = Clerbie_friends.objects.filter(user=obj)
+        relations = Clerbie_friends.objects.filter(Q(user1=obj) | Q(user2=obj))
+        friends = [r.user1 if r.user2 == obj else r.user2 for r in relations]
         return ClerbieSerializer(friends, many=True).data
-    
+
+
     def get_hobbies(self, obj):
         hobbies = Clerbie_hobbies.objects.filter(user=obj)
         return HobbySerializer(hobbies, many=True).data
@@ -128,27 +130,12 @@ class UpdateGeneralDataSerializer(serializers.ModelSerializer):
             'phone_number',
             'country',
             'time_zones',
+            'about_me',
+            'technologies',
             'business_email']
 
 def validate_avatar(self, value):
     return validate_avatar(self, value)
-
-
-class SocialLinksSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Clerbie
-        fields = [
-            'telegram', 
-            'linkedin', 
-            'github', 
-            'instagram', 
-            'skype', 
-            'discord', 
-            'website', 
-            'facebook', 
-            'youtube'
-        ]
-
 
 
 class CreateProjectSerializer(serializers.ModelSerializer):
@@ -268,8 +255,8 @@ class FriendsOffersSerializer(serializers.ModelSerializer):
             'id',
             'status',
             'offer_code',
-            'user_id',
-            'friend_id',
+            'user1',
+            'user2',
             'created_at',
             'expires_at',
             'description']
@@ -285,7 +272,7 @@ class OfferResponseSerializer(serializers.ModelSerializer):
 
 class CreateFriendshipSerializer(serializers.ModelSerializer):
 
-    friend_id = serializers.IntegerField(read_only=True)
+    user2 = serializers.IntegerField(read_only=True)
     expires_at = serializers.DateTimeField()
     description = serializers.CharField(required=False, default=None)
 
@@ -293,7 +280,7 @@ class CreateFriendshipSerializer(serializers.ModelSerializer):
     class  Meta:
         model = Clerbie_friends
         fields = [
-            'friend_id',
+            'user2',
             'expires_at',
             'description'
         ]
@@ -313,12 +300,62 @@ class FriendshipResponseSerializer(serializers.Serializer):
 
 class FriendSerializer(serializers.ModelSerializer):
 
-    id = serializers.IntegerField(source='friend.id')
-    nickname = serializers.CharField(source='friend.nickname')
-    username = serializers.CharField(source='friend.username')
-    avatar = serializers.URLField(source='friend.avatar')
+    id = serializers.IntegerField(source='user2.id')
+    nickname = serializers.CharField(source='user2.nickname')
+    username = serializers.CharField(source='user2.username')
+    avatar = serializers.URLField(source='user2.avatar')
     offer_code = serializers.CharField(required=False)
 
     class Meta:
         model = Clerbie_friends
         fields = ['id', 'nickname', 'username', 'avatar', 'offer_code']
+
+    def to_representation(self, instance):
+
+        request_user = self.context.get('request_user')
+
+        representation = super().to_representation(instance)
+
+        if request_user != instance.user1:
+            avatar = instance.user1.avatar.url if instance.user1.avatar else None
+            representation['id'] = instance.user1.id
+            representation['nickname'] = instance.user1.nickname
+            representation['username'] = instance.user1.username
+            representation['avatar'] = avatar
+        return representation
+
+
+class UpdateSocialsSerializer(serializers.ModelSerializer):
+
+    github = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    skype = serializers.CharField(required=False, allow_blank=True)
+    website = serializers.URLField(required=False, allow_blank=True)
+    youtube = serializers.URLField(required=False, allow_blank=True)
+    discord = serializers.CharField(required=False, allow_blank=True)
+    facebook = serializers.URLField(required=False, allow_blank=True)
+    linkedin = serializers.URLField(required=False, allow_blank=True)
+    telegram = serializers.URLField(required=False, allow_blank=True)
+    instagram = serializers.URLField(required=False, allow_blank=True)
+
+    class Meta:
+        model = Clerbie
+        fields = [
+            'github',
+            'skype',
+            'website',
+            'youtube',
+            'discord',
+            'facebook',
+            'linkedin',
+            'telegram',
+            'instagram',
+        ]
+
+    def validate(self, data):
+
+        social_fields = ['github', 'skype', 'website', 'youtube', 'discord', 'facebook', 'linkedin', 'telegram', 'instagram']
+
+        if not len(data.keys()):
+            raise serializers.ValidationError({"error:": "At least one social field must be provided."})
+
+        return data

@@ -27,10 +27,11 @@ class UserListSerializer(serializers.ModelSerializer):
 
         if request_user.is_authenticated:
             try:
-                friendship = Clerbie_friends.objects.get(Q(user=request_user, friend=obj) | Q(user=obj, friend=request_user))
+                friendship = Clerbie_friends.objects.get(Q(user1=request_user, user2=obj) | Q(user1=obj, user2=request_user))
                 if friendship.status == 'declined':
                     return None
                 return {
+                    'sender_id': friendship.user1.id,
                     'offer_code': friendship.offer_code,
                     'status': friendship.status
                 }
@@ -90,7 +91,6 @@ class BlockUserListSerializer(serializers.ModelSerializer):
         ]
 
     def get_blocked_user(self, obj):
-        print(obj)
         return {
             'id': obj.blocked_user.id,
             'username': obj.blocked_user.username,

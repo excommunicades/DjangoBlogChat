@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone
+from django.db.models import Q
 
 from authify.models import Clerbie
 from profile.models import (
@@ -36,7 +37,7 @@ from authify.choices import (
 class ClerbieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clerbie
-        fields = ['id', 'nickname', 'email', 'avatar']
+        fields = ['id', 'nickname', 'avatar'] # 'email'
 
 class FriendOfferSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,8 +45,8 @@ class FriendOfferSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'status',
-            'user_id',
-            'friend_id',
+            'user1',
+            'user2',
             'expires_at',
             'offer_code',
             'description']

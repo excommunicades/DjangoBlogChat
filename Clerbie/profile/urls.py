@@ -15,7 +15,7 @@ from profile.views import(
     CreateFriendship,
     RemoveFriendship,
     DeleteFriendOffer,
-    UpdateSocialLinks,
+    UpdateSocials,
     CreateProjectOffer, 
     RespondToFriendship,
     UpdateUserGeneralData,
@@ -29,7 +29,8 @@ urlpatterns = [
 
     # Update profile data
     path('update-general', UpdateUserGeneralData.as_view(), name='update-general-data'),
-    path('update-socials', UpdateSocialLinks.as_view(), name='update-social-links'),
+    path('update-socials', UpdateSocials.as_view(), name='update-social-links'),
+
 
     # Friend Actions
 
