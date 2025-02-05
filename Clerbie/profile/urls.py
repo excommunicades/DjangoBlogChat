@@ -2,23 +2,28 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 
-from profile.views import(
+from profile.views.profile_views import (
+    GetInbox,
     GetProfile,
-    GetInbox, 
     DeleteOffer,
+    UpdateSocials,
+    UpdateUserGeneralData,
+)
+from profile.views.projects_views import (
     CreateProject,
     UpdateProject,
     DeleteProject,
     ResponseOffer,
     GetProjectList,
+    CreateProjectOffer,
+
+)
+from profile.views.friends_views import (
     GetFriendsList,
     CreateFriendship,
     RemoveFriendship,
     DeleteFriendOffer,
-    UpdateSocials,
-    CreateProjectOffer, 
     RespondToFriendship,
-    UpdateUserGeneralData,
 )
 
 urlpatterns = [
