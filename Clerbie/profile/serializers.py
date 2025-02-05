@@ -9,6 +9,8 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField()
     username = serializers.CharField()
     email = serializers.EmailField()
+    about_me = serializers.CharField()
+    technologies = TechnologiesSerializer(many=True)
     role = serializers.ChoiceField(choices=USER_ROLE_CHOICES)
     behavior_points = serializers.IntegerField()
     gender = serializers.ChoiceField(choices=GENDER_CHOICES)
@@ -39,6 +41,8 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             'username',
             'avatar',
             'nickname',
+            'about_me',
+            'technologies',
             'email',
             'role',
             'behavior_points',
@@ -120,22 +124,50 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
 
 class UpdateGeneralDataSerializer(serializers.ModelSerializer):
 
+    technologies = serializers.ListField(child=serializers.CharField(), write_only=True)
+
     class Meta:
         model = Clerbie
         fields = [
-            'username',
             'avatar',
             'gender',
-            'birthday',
-            'phone_number',
             'country',
-            'time_zones',
             'about_me',
+            'username',
+            'birthday',
+            'time_zones',
             'technologies',
-            'business_email']
+            'phone_number',
+            'business_email',]
 
-def validate_avatar(self, value):
-    return validate_avatar(self, value)
+    def update(self, instance, validated_data):
+
+        for attr, value in validated_data.items():
+            if attr != 'technologies':
+                setattr(instance, attr, value)
+
+
+        technologies_data = validated_data.pop('technologies', [])
+
+        if not technologies_data:
+            instance.technologies.clear()
+
+        else:
+            instance.technologies.clear()
+            for tech_data in technologies_data:
+                technology, created = Technologies.objects.get_or_create(name=tech_data)
+                instance.technologies.add(technology)
+
+        instance.save()
+        return instance
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        technologies = instance.technologies.all()
+        representation['technologies'] = [tech.name for tech in technologies]
+
+        return representation
 
 
 class CreateProjectSerializer(serializers.ModelSerializer):
