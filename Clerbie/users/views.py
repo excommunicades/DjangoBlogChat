@@ -49,7 +49,6 @@ class GetUserData(generics.RetrieveAPIView):
     '''Retrieve user data by user id'''
 
     queryset = Clerbie.objects.all()
-
     serializer_class = UserDataSerializer
 
 @extend_schema(tags=['BlackList'])

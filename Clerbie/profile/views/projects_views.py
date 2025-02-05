@@ -13,9 +13,11 @@ from profile.serializers import (
 )
 from profile.utils.views_utils import (
     get_offer_by_id,
+    get_project_by_id,
     ProjectBaseView,
     response_by_status,
     get_offer_response_data,
+    create_project_business_logic,
 
 )
 from profile.utils.views_permissions import (
@@ -37,15 +39,17 @@ class GetProjectList(generics.ListAPIView):
 @extend_schema(tags=['Projects'])
 class CreateProject(generics.CreateAPIView):
 
-    queryset = Projects.objects.all()
+    queryset = Projects.objects.prefetch_related('technologies')
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
+
+
 
 
 @extend_schema(tags=['Projects'])
 class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
-    queryset = Projects.objects.all()
+    queryset = Projects.objects.prefetch_related('technologies')
     serializer_class = UpdateProjectSerializer
 
 @extend_schema(tags=['Projects'])
@@ -53,6 +57,12 @@ class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
+
+    def get_object(self):
+        """Override to ensure the project exists and possibly prefetch related data"""
+
+        project = super().get_object()
+        return project
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)

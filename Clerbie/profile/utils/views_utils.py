@@ -54,7 +54,7 @@ def create_project_business_logic(serializer, project, sender):
     except Clerbie.DoesNotExist:
         return Response({"error": "Receiver user not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    if receiver in project.users.all() and receiver != project.creator:
+    if project.users.filter(id=receiver.id).exists() and receiver != project.creator:
         return Response({'error': 'User already joined to team.'}, status=status.HTTP_400_BAD_REQUEST)
 
     if receiver == sender:
@@ -115,8 +115,8 @@ def get_offer_response_data(offer, user):
 def response_by_status(offer, user, offer_response_data):
 
     if offer.status == 'accepted':
-        print(offer.project.users.all())
-        if user not in offer.project.users.all():
+
+        if not offer.project.users.filter(id=user.id).exists():
             offer.project.users.add(user)
             offer.project.save()
         else:

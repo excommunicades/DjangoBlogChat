@@ -36,10 +36,7 @@ class GetFriendsList(generics.ListAPIView):
 
     def get_queryset(self):
 
-        user = self.request.user
-        queryset = Clerbie_friends.objects.all()
-
-        return queryset
+        return Clerbie_friends.objects.prefetch_related('user1', 'user2')
 
     def list(self, request, *args, **kwargs):
 

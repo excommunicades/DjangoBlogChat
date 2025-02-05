@@ -1,7 +1,8 @@
 from channels.db import database_sync_to_async
 
 from django.utils import timezone
-from django.db.models import Max
+from django.db.models import Max, Prefetch
+from django.db import models
 
 @database_sync_to_async
 def get_user_by_id(user_id):
@@ -55,37 +56,72 @@ def set_message_status_read(message_id):
     from chat.models import Message
     from websocket.consumers import connected_users    
 
-
-    message = Message.objects.filter(id=int(message_id)).first()
+    message = Message.objects.select_related('room').prefetch_related('room__users').filter(id=int(message_id)).first()
 
     if message:
-        
         message.status = 'read'
         message.when_read = timezone.now()
-
         message.save()
 
         participants = message.room.users.all()
+        connected_participants = [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
 
-        return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
-
+        return connected_participants
+    
     return []
+
+    # message = Message.objects.filter(id=int(message_id)).first()
+
+    # if message:
+        
+    #     message.status = 'read'
+    #     message.when_read = timezone.now()
+
+    #     message.save()
+
+    #     participants = message.room.users.all()
+
+    #     return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+
+    # return []
 
 @database_sync_to_async
 def get_user_chats(user_id):
 
-    from chat.models import ChatRoom
+    # from chat.models import ChatRoom
 
-    chats = ChatRoom.objects.filter(users__id=user_id)
-    chats = chats.annotate(last_message_time=Max('messages__timestamp'))
-    chats = chats.order_by('-last_message_time')
-    return [{
-        'chat_users': ', '.join([user.username for user in chat.users.exclude(id=user_id)]),
-        'chat_id': chat.id,
-        'chat_participant_list': ', '.join([str(user.id) for user in chat.users.all()]),
-        'last_message_time': chat.last_message_time.isoformat() if chat.last_message_time else None
-    } for chat in chats]
+    # chats = ChatRoom.objects.filter(users__id=user_id)
+    # chats = chats.annotate(last_message_time=Max('messages__timestamp'))
+    # chats = chats.order_by('-last_message_time')
+    # return [{
+    #     'chat_users': ', '.join([user.username for user in chat.users.exclude(id=user_id)]),
+    #     'chat_id': chat.id,
+    #     'chat_participant_list': ', '.join([str(user.id) for user in chat.users.all()]),
+    #     'last_message_time': chat.last_message_time.isoformat() if chat.last_message_time else None
+    # } for chat in chats]
+    from chat.models import ChatRoom, Clerbie  # Assuming Clerbie is your user model
 
+    chats = ChatRoom.objects.filter(users__id=user_id).prefetch_related(
+        Prefetch('users', queryset=Clerbie.objects.only('id', 'username'))  # Загружаем только нужные поля
+    )
+    
+    chats = chats.annotate(last_message_time=Max('messages__timestamp')).order_by('-last_message_time')
+    
+    chat_data = []
+    for chat in chats:
+
+        chat_users = ', '.join([user.username for user in chat.users.exclude(id=user_id)])
+        
+        chat_participant_list = ', '.join([str(user.id) for user in chat.users.all()])
+        
+        chat_data.append({
+            'chat_users': chat_users,
+            'chat_id': chat.id,
+            'chat_participant_list': chat_participant_list,
+            'last_message_time': chat.last_message_time.isoformat() if chat.last_message_time else None
+        })
+    
+    return chat_data
 @database_sync_to_async
 def get_chat_messages(chat_id):
 
@@ -116,16 +152,15 @@ def delete_chat(chat_id, user):
     from chat.models import ChatRoom
     from websocket.consumers import connected_users    
 
-    chat = ChatRoom.objects.filter(id=chat_id).first()
-
-    if not chat:
+    try:
+        chat = ChatRoom.objects.get(id=chat_id)
+    except ChatRoom.DoesNotExist:
         return []
 
-    participants = list(chat.users.all())
+    participants = chat.users.all()
 
 
     if user in chat.users.values_list('id', flat=True):
-
         chat.delete()
 
         return [
@@ -143,29 +178,48 @@ def delete_message(message_id, user, chat_id):
     from chat.models import Message
     from websocket.consumers import connected_users
 
-    messages = Message.objects.filter(room_id=chat_id)
+    try:
 
-    message = messages.filter(id=message_id).first()
+        message = Message.objects.select_related('room').filter(id=message_id, room_id=chat_id).first()
 
-    if message and message.user.id == user:
+        if message and message.user.id == user:
 
-        if messages.count() > 1:
+            if message.room.messages.count() > 1:
+                message.delete()
+            else:
+                message.delete()
+                message.room.delete()
 
-            message.delete()
+            participants = message.room.users.all()
+            return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
 
-        else:
-
-            message.delete()
-
-            room = message.room
-
-            room.delete()
-
-        participants = message.room.users.all()
-
-        return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+    except Message.DoesNotExist:
+        return []
 
     return []
+    # messages = Message.objects.filter(room_id=chat_id)
+
+    # message = messages.filter(id=message_id).first()
+
+    # if message and message.user.id == user:
+
+    #     if messages.count() > 1:
+
+    #         message.delete()
+
+    #     else:
+
+    #         message.delete()
+
+    #         room = message.room
+
+    #         room.delete()
+
+    #     participants = message.room.users.all()
+
+    #     return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+
+    # return []
 
 @database_sync_to_async
 def update_message(message_id, user, new_message_content):
@@ -173,12 +227,22 @@ def update_message(message_id, user, new_message_content):
     from chat.models import Message
     from websocket.consumers import connected_users
 
-    message = Message.objects.filter(id=message_id).first()
-    if message and message.user.id == user:
-        message.content = new_message_content
-        message.save()
-        participants = message.room.users.all()
-        return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+    try:
+
+        message = Message.objects.select_related('room').filter(id=message_id).first()
+
+        if message and message.user.id == user:
+
+            message.content = new_message_content
+            message.save()
+
+            participants = message.room.users.all()
+
+            return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
+        
+    except Message.DoesNotExist:
+        return []
+
     return []
 
 @database_sync_to_async
@@ -193,7 +257,7 @@ def pin_message(message_id, user):
 
         message.is_pinned = True
         message.save()
-        participants = message.room.users.all()
+        participants = list(message.room.users.all())
         return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
     return []
 
@@ -205,7 +269,7 @@ def reply_message(message_replied_id, reply_content, chat_id, user):
 
     message = Message.objects.create(user=user, room=int(chat_id), content=reply_content, reply_to=message_replied_id)
 
-    participants = message.room.users.all()
+    participants = list(message.room.users.all())
 
     return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]
 
@@ -224,6 +288,6 @@ def save_forward_message(message_content, from_user_id, user_from,  to_chat_id):
                             reply_to_id=to_chat_id,
                             )
 
-    participants = message.room.users.all()
+    participants = list(message.room.users.all())
 
     return [connected_users.get(participant.id) for participant in participants if connected_users.get(participant.id)]

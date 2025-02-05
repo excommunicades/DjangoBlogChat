@@ -212,25 +212,28 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-
         user = self.context['request'].user
 
+        # Проверка на права доступа
         if instance.creator != user:
             raise PermissionDenied("You do not have permission to update this project.")
-
 
         technologies_data = validated_data.pop('technologies', [])
 
         instance.name = validated_data.get('name', instance.name)
         instance.description = validated_data.get('description', instance.description)
-
         instance.save()
 
         if technologies_data:
-            instance.technologies.clear()
-            for tech_data in technologies_data:
-                technology, created = Technologies.objects.get_or_create(name=tech_data)
-                instance.technologies.add(technology)
+
+            existing_technologies = Technologies.objects.filter(name__in=technologies_data)
+            existing_tech_names = [tech.name for tech in existing_technologies]
+
+            new_technologies = [Technologies(name=tech_name) for tech_name in technologies_data if tech_name not in existing_tech_names]
+            Technologies.objects.bulk_create(new_technologies)
+
+            all_technologies = existing_technologies | Technologies.objects.filter(name__in=technologies_data)
+            instance.technologies.set(all_technologies)
 
         return instance
 
@@ -345,7 +348,6 @@ class FriendSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
 
         request_user = self.context.get('request_user')
-
         representation = super().to_representation(instance)
 
         if request_user != instance.user1:

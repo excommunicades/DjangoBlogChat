@@ -59,7 +59,7 @@ class GetProfile(generics.GenericAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Inbox'])
 class GetInbox(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -84,13 +84,17 @@ class GetInbox(generics.GenericAPIView):
             }
         }, status=status.HTTP_200_OK)
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Inbox'])
 class DeleteOffer(generics.DestroyAPIView):
 
     queryset = Offers.objects.all()
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [isOfferReceiverOrSender]
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        return Offers.objects.filter(id=self.kwargs['pk'])
 
 
 @extend_schema(tags=['Profile'])
@@ -102,7 +106,7 @@ class UpdateUserGeneralData(generics.UpdateAPIView):
     lookup_field = 'pk'
 
     def get_object(self):
-        return Clerbie.objects.get(pk=self.request.user.pk)
+        return Clerbie.objects.prefetch_related('technologies').get(pk=self.request.user.pk)
 
 
 @extend_schema(tags=['Profile'])
