@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -27,6 +29,7 @@ from profile.models import (
 )
 
 
+@extend_schema(tags=['Friends'])
 class GetFriendsList(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendSerializer
@@ -56,6 +59,7 @@ class GetFriendsList(generics.ListAPIView):
         })
 
 
+@extend_schema(tags=['Friends'])
 class CreateFriendship(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -82,6 +86,7 @@ class CreateFriendship(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=['Friends'])
 class RespondToFriendship(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
@@ -106,9 +111,11 @@ class RespondToFriendship(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=['Friends'])
 class RemoveFriendship(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
+
 
     def delete(self, request, friend_id):
 
@@ -124,6 +131,7 @@ class RemoveFriendship(generics.GenericAPIView):
         return Response({"error": "Friend was removed successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(tags=['Friends'])
 class DeleteFriendOffer(generics.DestroyAPIView):
 
     '''deletes user's friend offer'''

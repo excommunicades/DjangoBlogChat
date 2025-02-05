@@ -14,7 +14,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
 from rest_framework.schemas import get_schema_view
 
@@ -22,6 +21,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
 
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 urlpatterns = [
@@ -35,11 +35,8 @@ urlpatterns = [
     path('users/', include('users.urls')),
 
     # swagger
-    path('api_schema', get_schema_view(title='Swagger', description='Guide for the REST API'), name='api_schema'),
-    path('swagger/', TemplateView.as_view(
-                        template_name='docs.html',
-                        extra_context={'schema_url':'api_schema'}
-                        ), name='swagger-ui'),
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
 
     # test pages
     path('test', TemplateView.as_view(

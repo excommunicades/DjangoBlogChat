@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -26,13 +28,13 @@ from profile.models import (
     Offers,
 )
 
-
+@extend_schema(tags=['Projects'])
 class GetProjectList(generics.ListAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
 
-
+@extend_schema(tags=['Projects'])
 class CreateProject(generics.CreateAPIView):
 
     queryset = Projects.objects.all()
@@ -40,20 +42,22 @@ class CreateProject(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
 
 
+@extend_schema(tags=['Projects'])
 class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = UpdateProjectSerializer
 
-
+@extend_schema(tags=['Projects'])
 class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.all()
+    serializer_class = ProjectSerializer
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)
 
-
+@extend_schema(tags=['Projects'])
 class CreateProjectOffer(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -75,7 +79,7 @@ class CreateProjectOffer(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema(tags=['Projects'])
 class ResponseOffer(generics.GenericAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = OfferResponseSerializer

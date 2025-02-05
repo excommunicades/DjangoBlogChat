@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -18,6 +20,8 @@ from users.utils.views_utils import (
     user_pagination
 )
 
+
+@extend_schema(tags=['Users'])
 class GetUserList(generics.ListAPIView):
 
     '''Returns a list of users'''
@@ -39,7 +43,7 @@ class GetUserList(generics.ListAPIView):
 
         return user_pagination(page, page_size, user)
 
-
+@extend_schema(tags=['Users'])
 class GetUserData(generics.RetrieveAPIView):
 
     '''Retrieve user data by user id'''
@@ -48,7 +52,7 @@ class GetUserData(generics.RetrieveAPIView):
 
     serializer_class = UserDataSerializer
 
-
+@extend_schema(tags=['BlackList'])
 class BlockUserView(generics.GenericAPIView):
 
     ''' Process user data for blocking '''
@@ -78,7 +82,7 @@ class BlockUserView(generics.GenericAPIView):
         
         return Response({'errors': 'Blocked user does not exist.'}, status=status.HTTP_404_NOT_FOUND)
 
-
+@extend_schema(tags=['BlackList'])
 class BlockUserListView(generics.ListAPIView):
 
     authentication_classes = [JWTAuthentication]

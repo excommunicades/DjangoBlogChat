@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -29,7 +31,7 @@ from profile.models import (
     Clerbie_friends,
 )
 
-
+@extend_schema(tags=['Profile'])
 class GetProfile(generics.GenericAPIView):
 
     """
@@ -57,7 +59,7 @@ class GetProfile(generics.GenericAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
+@extend_schema(tags=['Profile'])
 class GetInbox(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -82,7 +84,7 @@ class GetInbox(generics.GenericAPIView):
             }
         }, status=status.HTTP_200_OK)
 
-
+@extend_schema(tags=['Profile'])
 class DeleteOffer(generics.DestroyAPIView):
 
     queryset = Offers.objects.all()
@@ -91,6 +93,7 @@ class DeleteOffer(generics.DestroyAPIView):
     permission_classes = [isOfferReceiverOrSender]
 
 
+@extend_schema(tags=['Profile'])
 class UpdateUserGeneralData(generics.UpdateAPIView):
 
     queryset = Clerbie.objects.all()
@@ -102,6 +105,7 @@ class UpdateUserGeneralData(generics.UpdateAPIView):
         return Clerbie.objects.get(pk=self.request.user.pk)
 
 
+@extend_schema(tags=['Profile'])
 class UpdateSocials(generics.UpdateAPIView):
 
     '''CRUD Operations for Socials in profile'''

@@ -2,6 +2,7 @@ import io
 from PIL import Image
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
+from drf_spectacular.utils import extend_schema_field
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone

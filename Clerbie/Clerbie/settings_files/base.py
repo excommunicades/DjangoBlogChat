@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'channels',
     # "debug_toolbar",
     'django_extensions',
+    'drf_spectacular',
 
     # 'django.contrib.admin',
     'django.contrib.auth',
@@ -90,5 +91,17 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
 
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Your API title',
+    'DESCRIPTION': 'A description of your API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,  # Чтобы схема не была доступна по прямому пути
+    'ENUM_NAME_OVERRIDES': {
+        'status': 'CustomStatusEnum',
+    },
 }

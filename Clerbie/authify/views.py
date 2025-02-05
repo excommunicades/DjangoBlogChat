@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import generics, status, permissions
@@ -28,6 +30,7 @@ from authify.utils import (
 from authify.models import Clerbie
 
 
+@extend_schema(tags=['Registration'])
 class RegisterUser(generics.CreateAPIView):
 
     """
@@ -76,7 +79,7 @@ class RegisterUser(generics.CreateAPIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
+@extend_schema(tags=['Registration'])
 class RegisterConfirm(generics.GenericAPIView):
 
     """
@@ -114,7 +117,7 @@ class RegisterConfirm(generics.GenericAPIView):
 
         return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema(tags=['Authorization'])
 class LoginUser(generics.GenericAPIView):
 
     """
@@ -193,6 +196,7 @@ class LoginUser(generics.GenericAPIView):
 
             return Response({'errors': {'error': str(e)}}, status=status.HTTP_401_UNAUTHORIZED)
 
+@extend_schema(tags=['Authorization'])
 class LogoutUser(generics.GenericAPIView):
 
     '''Logoutes a user from his session.
@@ -216,6 +220,7 @@ class LogoutUser(generics.GenericAPIView):
         return response
 
 
+@extend_schema(tags=['Token'])
 @csrf_exempt
 @api_view(['POST'])
 def refresh_token_view(request):
@@ -240,7 +245,7 @@ def refresh_token_view(request):
 
         return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-
+@extend_schema(tags=['Password'])
 class RequestPasswordRecovery(generics.GenericAPIView):
 
     """
@@ -281,7 +286,7 @@ class RequestPasswordRecovery(generics.GenericAPIView):
 
         return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema(tags=['Password'])
 class PasswordRecovery(generics.GenericAPIView):
 
     """
@@ -316,7 +321,7 @@ class PasswordRecovery(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema(tags=['User-data'])
 class GetUserData(generics.GenericAPIView):
 
     """
