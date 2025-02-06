@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from profile.serializers import (
     ProjectSerializer,
@@ -42,6 +43,7 @@ class CreateProject(generics.CreateAPIView):
     queryset = Projects.objects.prefetch_related('technologies')
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 
@@ -51,12 +53,14 @@ class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.prefetch_related('technologies')
     serializer_class = UpdateProjectSerializer
+    permission_classes = [IsAuthenticated]
 
 @extend_schema(tags=['Projects'])
 class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         """Override to ensure the project exists and possibly prefetch related data"""
@@ -72,6 +76,7 @@ class CreateProjectOffer(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
     serializer_class = CreateOfferSerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, project_id):
 
@@ -91,8 +96,10 @@ class CreateProjectOffer(generics.GenericAPIView):
 
 @extend_schema(tags=['Projects'])
 class ResponseOffer(generics.GenericAPIView):
+
     authentication_classes = [JWTAuthentication]
     serializer_class = OfferResponseSerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, offer_code):
 

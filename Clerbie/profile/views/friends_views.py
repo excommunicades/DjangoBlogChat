@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from django.db.models import Q
 
@@ -31,8 +32,10 @@ from profile.models import (
 
 @extend_schema(tags=['Friends'])
 class GetFriendsList(generics.ListAPIView):
+
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
 
@@ -61,7 +64,7 @@ class CreateFriendship(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
     serializer_class = CreateFriendshipSerializer
-    permission_classes = [isNotBlockedUser]
+    permission_classes = [isNotBlockedUser, IsAuthenticated]
 
     def post(self, request, friend_id):
 
@@ -85,8 +88,10 @@ class CreateFriendship(generics.GenericAPIView):
 
 @extend_schema(tags=['Friends'])
 class RespondToFriendship(generics.GenericAPIView):
+
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, offer_code):
 
@@ -110,8 +115,10 @@ class RespondToFriendship(generics.GenericAPIView):
 
 @extend_schema(tags=['Friends'])
 class RemoveFriendship(generics.GenericAPIView):
+
     authentication_classes = [JWTAuthentication]
     serializer_class = FriendshipResponseSerializer
+    permission_classes = [IsAuthenticated]
 
 
     def delete(self, request, friend_id):
@@ -134,6 +141,7 @@ class DeleteFriendOffer(generics.DestroyAPIView):
     '''deletes user's friend offer'''
 
     authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = FriendsOffersSerializer
     lookup_field = 'offer_code'
 

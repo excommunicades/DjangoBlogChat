@@ -12,6 +12,7 @@ from authify.views import (
     LogoutUser,
     GetUserData,
     RegisterUser,
+    ChangePassword,
     RegisterConfirm,
     PasswordRecovery,
     refresh_token_view,
@@ -33,6 +34,7 @@ urlpatterns = [
     #password actions
     path('request-password-recovery', RequestPasswordRecovery.as_view(), name="request_password_recovery"),
     path('password-recovery', PasswordRecovery.as_view(), name="password_recovery"),
+    path('change-password', ChangePassword.as_view(), name='change_password'),
 
     #token
     path('token/refresh', refresh_token_view, name='token_refresh'),

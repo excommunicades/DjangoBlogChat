@@ -4,6 +4,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from django.db import IntegrityError
 
@@ -59,6 +60,7 @@ class BlockUserView(generics.GenericAPIView):
     queryset = BlackList.objects.all()
     authentication_classes = [JWTAuthentication]
     serializer_class = BlockuserSerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         request_user = self.request.user
@@ -86,6 +88,7 @@ class BlockUserListView(generics.ListAPIView):
 
     authentication_classes = [JWTAuthentication]
     serializer_class = BlockUserListSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         

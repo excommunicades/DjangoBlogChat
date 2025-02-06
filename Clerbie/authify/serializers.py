@@ -10,6 +10,11 @@ from authify.models import Clerbie
 from authify.choices import USER_ROLE_CHOICES
 from authify.choices import ACCOUNT_STATUS_CHOICES
 
+from authify.utils import (
+    validate_password_strength,
+    validate_passwords_match, 
+    check_current_password,
+)
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
@@ -60,32 +65,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         return value
 
-    def validate_password(self, value):
-
-        """
-        Ensure the password meets specific strength requirements:
-        - At least 8 characters
-        - Contains at least one digit
-        - Contains at least one special character
-        """
-
-        pattern = r'^(?=.*[!@#$%^&()+}{":;\'?/>.<,`~])(?=.*\d)[^\s]{8,}$'
-
-        if not re.match(pattern, value):
-            raise serializers.ValidationError(
-                "Password must be at least 8 characters long, contain at least one digit, "
-                "contain at least one special character, and not have any spaces."
-            )
-
-        return value
-
     def validate(self, attrs):
 
-        """Ensure the password and confirm password fields match."""
-
-        if attrs['password'] != attrs['confirm_password']:
-
-            raise serializers.ValidationError({"confirm_password": "Passwords must match."})
+        validate_password_strength(attrs['password'])
+        validate_passwords_match(attrs['password'], attrs['confirm_password'])
 
         return attrs
 
@@ -277,3 +260,28 @@ class GetUserDataSerializer(serializers.ModelSerializer):
             'role',
             'status'
         ]
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+
+    '''Serialize data for password changing'''
+
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField()
+    confirm_password = serializers.CharField()
+
+    def validate(self, attrs):
+
+        validate_passwords_match(attrs['new_password'], attrs['confirm_password'])
+        user = self.context.get('user')
+        if user:
+            check_current_password(user, attrs['current_password'])
+        validate_password_strength(attrs['new_password'])
+        return attrs
+
+    def update(self, instance, validated_data):
+
+        user = instance
+        user.set_password(validated_data['new_password'])
+        user.save()
+        return user

@@ -1,4 +1,5 @@
 import random
+import re
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from authify.models import Clerbie
@@ -17,7 +19,6 @@ class RegistrationService:
     def __init__(self, user_data):
 
         self.user_data = user_data
-
         self.code = random.randint(100000, 999999)
 
     def send_confirmation_email(self):
@@ -94,35 +95,23 @@ class AuthenticationService:
     def validate_user(self):
 
         try:
-
             user = Clerbie.objects.get(email=self.nickname)
 
         except Exception:
-
             try:
-
                 user = Clerbie.objects.get(nickname=self.nickname)
-
             except Exception:
-
                 raise Exception('User does not exist.')
 
         try:
-
             user = authenticate(nickname=user, password=self.password)
 
         except Exception:
-
             try:
-
                 user = authenticate(nickname=user, password=self.password)
-
             except Exception:
-
                 raise Exception('Wrong password.')
-
         if not user:
-
             raise Exception('Wrong password.')
 
         return user
@@ -173,27 +162,20 @@ class PasswordRecoveryService:
     def __init__(self, recovery_code, new_password):
 
         self.recovery_code = recovery_code
-
         self.new_password = new_password
 
     def validate_code(self):
 
         user_data = cache.get(self.recovery_code)
-
         if not user_data:
-
             raise ValueError("Invalid code")
-
         return user_data
 
     def get_user(self, email):
 
         try:
-
             return Clerbie.objects.get(email=email)
-
         except ObjectDoesNotExist:
-
             raise ValueError("User with this email does not exist.")
 
     def change_password(self, user):
@@ -224,11 +206,36 @@ def set_tokens_in_cookies(response, refresh_token):
 def get_user_by_request(request_user):
 
     try:
-
         user = Clerbie.objects.get(nickname=str(request_user))
-
     except Clerbie.DoesNotExist:
-
         return None
-
     return user
+
+
+def validate_password_strength(password):
+    """
+    Ensure the password meets specific strength requirements:
+    - At least 8 characters
+    - Contains at least one digit
+    - Contains at least one special character
+    """
+
+    pattern = r'^(?=.*[!@#$%^&()+}{":;\'?/>.<,`~])(?=.*\d)[^\s]{8,}$'
+
+    if not re.match(pattern, password):
+        raise ValidationError(
+            {
+            "password": "Password must be at least 8 characters long, contain at least one digit, "
+            "contain at least one special character, and not have any spaces."
+            }
+        )
+
+def validate_passwords_match(new_password, confirm_password):
+    """Ensure the password and confirm password fields match."""
+    if new_password != confirm_password:
+        raise ValidationError({"confirm_password": "Passwords must match."})
+
+def check_current_password(user, current_password):
+    """Ensure the current password matches the user's password."""
+    if not user.check_password(current_password):
+        raise ValidationError({"current_password": "Current password is incorrect."})

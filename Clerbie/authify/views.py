@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import generics, status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +15,7 @@ from authify.serializers import (
     RegistrationSerializer,
     AuthorizationSerializer,
     LogoutResponseSerializer,
+    ChangePasswordSerializer,
     PasswordRecoverySerializer,
     RegistrationConfirmSerializer,
     RequestPasswordRecoverySerializer,
@@ -332,6 +334,7 @@ class GetUserData(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
     serializer_class = GetUserDataSerializer
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         request_user = self.request.user
@@ -344,3 +347,35 @@ class GetUserData(generics.GenericAPIView):
         serializer = self.get_serializer(user, context={'request_user': request.user})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=['Password'])
+class ChangePassword(generics.UpdateAPIView):
+
+    queryset = Clerbie.objects.all()
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    def get_object(self):
+        user = self.request.user
+        if user is None:
+            raise PermissionDenied("Authentication required.")
+        return user
+
+    def perform_update(self, serializer):
+
+        user = self.get_object()
+        serializer.update(user, serializer.validated_data)
+
+    def update(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data, context={'user': request.user})
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return Response({"message": "Password was changed successfully!"}, status=status.HTTP_200_OK)
+        
+        return Response({"errors": {
+            field: error[0] for field, error in serializer.errors.items()
+        }}, status=status.HTTP_400_BAD_REQUEST)

@@ -4,6 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 from django.utils import timezone
 from django.db.models import Q
@@ -63,6 +64,7 @@ class GetProfile(generics.GenericAPIView):
 class GetInbox(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = FriendSerializer
 
     def get(self, request):
@@ -90,7 +92,7 @@ class DeleteOffer(generics.DestroyAPIView):
     queryset = Offers.objects.all()
     serializer_class = CreateProjectSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [isOfferReceiverOrSender]
+    permission_classes = [isOfferReceiverOrSender, IsAuthenticated]
     lookup_field = 'pk'
 
     def get_queryset(self):
@@ -103,6 +105,7 @@ class UpdateUserGeneralData(generics.UpdateAPIView):
     queryset = Clerbie.objects.all()
     serializer_class = UpdateGeneralDataSerializer
     authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
 
     def get_object(self):
@@ -115,6 +118,7 @@ class UpdateSocials(generics.UpdateAPIView):
     '''CRUD Operations for Socials in profile'''
 
     queryset = Clerbie.objects.all()
+    permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = UpdateSocialsSerializer
 
