@@ -11,6 +11,7 @@ from profile.serializers import (
     UpdateProjectSerializer,
     CreateProjectSerializer,
     OfferResponseSerializer,
+    LeaveFromProjectSerializer,
 )
 from profile.utils.views_utils import (
     get_offer_by_id,
@@ -27,6 +28,7 @@ from profile.utils.views_permissions import (
 )
 
 from profile.models import (
+    Clerbie,
     Projects,
     Offers,
 )
@@ -53,14 +55,12 @@ class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.prefetch_related('technologies')
     serializer_class = UpdateProjectSerializer
-    permission_classes = [IsAuthenticated]
 
 @extend_schema(tags=['Projects'])
 class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         """Override to ensure the project exists and possibly prefetch related data"""
@@ -120,3 +120,77 @@ class ResponseOffer(generics.GenericAPIView):
 
         offer_response_data = get_offer_response_data(offer, user)
         return response_by_status(offer, user, offer_response_data)
+
+from profile.serializers import KickProjectMemberSerializer
+
+@extend_schema(tags=['Projects'])
+
+class KickProjectMember(ProjectBaseView, generics.DestroyAPIView):
+
+    queryset = Projects.objects.prefetch_related('users')
+    serializer_class = KickProjectMemberSerializer
+
+    def delete(self, request, *args, **kwargs):
+
+        project_id = kwargs.get('pk')
+        project = self.get_object()
+
+        members_to_kick = request.data.get('members', [])
+
+        if not members_to_kick:
+            return Response(
+                {"error": f"You didn't choose any users to kick"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        for member_id in members_to_kick:
+            if member_id != self.request.user.id:
+                if project.users.filter(id=member_id).exists():
+                    project.users.remove(member_id)
+                else:
+                    return Response(
+                        {"error": f"User with ID {member_id} is not a member of your project."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            else:
+                return Response(
+                    {"error": f"You can not kick yourself."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        return Response(
+            {"message": "Selected members have been removed from the project."},
+            status=status.HTTP_200_OK
+        )
+
+
+class LeaveFromProject(generics.DestroyAPIView):
+
+    queryset = Projects.objects.prefetch_related('users')
+    serializer_class = LeaveFromProjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+
+        project_id = kwargs.get('pk')
+        project = self.get_object()
+        user_id = self.request.user.id
+
+        if project.creator.id != user_id:
+
+            if project.users.filter(id=user_id).exists():
+                project.users.remove(user_id)
+            else:
+                return Response(
+                    {"error": f"You are not a member of this project."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response(
+                {"error": f"You can not leave from your project. You need to DELETE your project!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(
+            {"message": "You leaved from this project!"},
+            status=status.HTTP_200_OK
+        )

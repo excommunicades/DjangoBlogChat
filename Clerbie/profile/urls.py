@@ -15,6 +15,8 @@ from profile.views.projects_views import (
     DeleteProject,
     ResponseOffer,
     GetProjectList,
+    LeaveFromProject,
+    KickProjectMember,
     CreateProjectOffer,
 
 )
@@ -33,27 +35,29 @@ urlpatterns = [
     path('<int:user>', GetProfile.as_view(), name='get-user-data'),
 
     # Update profile data
-    path('update-general', UpdateUserGeneralData.as_view(), name='update-general-data'),
-    path('update-socials', UpdateSocials.as_view(), name='update-social-links'),
+    path('general/update', UpdateUserGeneralData.as_view(), name='update-general-data'),
+    path('socials/update', UpdateSocials.as_view(), name='update-social-links'),
 
 
     # Friend Actions
 
-    path('friends/add/<int:friend_id>', CreateFriendship.as_view(), name='offer-to-user-add-to-friendlist'),
-    path('friends/delete-offer/<uuid:offer_code>', DeleteFriendOffer.as_view(), name='delete-friend-offer'),
-    path('friends/response/<uuid:offer_code>', RespondToFriendship.as_view(), name='repsonse-to-friend-invite'),
-    path('friends/remove/<int:friend_id>', RemoveFriendship.as_view(), name='remove-friend-from-'),
+    path('friends/offers/create/<int:friend_id>', CreateFriendship.as_view(), name='offer-to-user-add-to-friendlist'),
+    path('friends/offers/response/<uuid:offer_code>', RespondToFriendship.as_view(), name='repsonse-to-friend-invite'),
+    path('friends/offers/delete/<uuid:offer_code>', DeleteFriendOffer.as_view(), name='delete-friend-offer'),
+    path('friends/remove/<int:friend_id>', RemoveFriendship.as_view(), name='remove-friend'),
     path('friends/list', GetFriendsList.as_view(), name='get-friend-list'),
 
     # Projects Actions
     path('projects', GetProjectList.as_view(), name='project-list'),
-    path('create-project', CreateProject.as_view(), name='create-project'),
-    path('update-project/<int:pk>', UpdateProject.as_view(), name='update-project'),
-    path('delete-project/<int:pk>', DeleteProject.as_view(), name='delete-project'),
+    path('projects/create', CreateProject.as_view(), name='create-project'),
+    path('projects/update/<int:pk>', UpdateProject.as_view(), name='update-project'),
+    path('projects/delete/<int:pk>', DeleteProject.as_view(), name='delete-project'),
+    path('projects/<int:pk>/members/kick', KickProjectMember.as_view(), name='kick-member-from-project'),
+    path('projects/<int:pk>/members/leave', LeaveFromProject.as_view(), name='leave-from-project'),
     
     # Project offer actions
-    path('offer/create/<int:project_id>', CreateProjectOffer.as_view(), name='create_offer'),
-    path('offer/response/<uuid:offer_code>', ResponseOffer.as_view(), name='offer-response'),
+    path('projects/members/offers/create/<int:project_id>', CreateProjectOffer.as_view(), name='create_offer'),
+    path('projects/members/offers/response/<uuid:offer_code>', ResponseOffer.as_view(), name='offer-response'),
 
     # Inbox actions
     path('inbox', GetInbox.as_view(), name='get-offers'),

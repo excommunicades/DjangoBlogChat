@@ -214,7 +214,6 @@ class UpdateProjectSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user = self.context['request'].user
 
-        # Проверка на права доступа
         if instance.creator != user:
             raise PermissionDenied("You do not have permission to update this project.")
 
@@ -393,3 +392,22 @@ class UpdateSocialsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"error:": "At least one social field must be provided."})
 
         return data
+
+
+class KickProjectMemberSerializer(serializers.Serializer):
+
+    members = serializers.ListField(child=serializers.IntegerField())
+
+    def validate_members(self, value):
+
+        if not value:
+            raise serializers.ValidationError("The members list cannot be empty.")
+        
+        for member_id in value:
+            if not Clerbie.objects.filter(id=member_id).exists():
+                raise serializers.ValidationError(f"User with ID {member_id} does not exist.")
+        
+        return value
+
+class LeaveFromProjectSerializer(serializers.Serializer):
+    pass

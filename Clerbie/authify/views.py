@@ -49,31 +49,20 @@ class RegisterUser(generics.CreateAPIView):
         if serializer.is_valid():
 
             user_data = serializer.validated_data
-
             registration_service = RegisterUserUtil(user_data)
-
             code = registration_service.execute()
-
             return Response({"message": "Please check your email for confirmation with code"}, status=status.HTTP_200_OK)
 
         errors = serializer.errors
-
         formatted_errors = {}
 
         for field, error_list in errors.items():
-
             for i, e in enumerate(error_list):
-
                 match e:
-
                     case 'blog user with this nickname already exists.':
-
                         error_list[i] = 'User with this nickname already exists.'
-
                     case 'blog user with this email already exists.':
-
                         error_list[i] = 'User with this email already exists.'
-
             formatted_errors[field] = " ".join(error_list)
 
         return Response(
@@ -94,27 +83,18 @@ class RegisterConfirm(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
 
         serializer = self.get_serializer(data=request.data)
-
         if serializer.is_valid():
 
             code = serializer.data.get('code')
-
             user_data = cache.get(code)
-
             if user_data:
-
                 try:
-
                     confirmation_service = RegistrationConfirmationService(code, user_data)
                     confirmation_service.execute()
                     return Response({"message": "Registration successfully."}, status=status.HTTP_200_OK)
-
                 except ValueError as e:
-
                     return Response({"errors": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
-
             else:
-
                 return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"errors": {"message": "Wrong code."}}, status=status.HTTP_400_BAD_REQUEST)
@@ -138,46 +118,29 @@ class LoginUser(generics.GenericAPIView):
         if not serializer.is_valid():
 
             errors = serializer.errors
-
             nickname_error = errors.get('nickname', [])
 
             if nickname_error:
-
                 nickname_error_msg = str(nickname_error[0])
-
                 if nickname_error_msg in ['User does not exist.', 'This field is required.']:
-
                     return Response({'errors': {'nickname': nickname_error_msg}}, status=status.HTTP_404_NOT_FOUND)
-
             password_error = errors.get('password', [])
-
             if password_error and str(password_error[0]) == 'Wrong password.':
-
                 return Response({'errors': {'password': 'Wrong password.'}}, status=status.HTTP_404_NOT_FOUND)
 
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         user_data = serializer.validated_data
-
         auth_service = AuthenticationService(user_data)
 
         try:
-
             user, refresh_token, access_token = auth_service.execute()
-
             try:
-
                 user_data = Clerbie.objects.get(email=str(user))
-
             except Clerbie.DoesNotExist:
-
                 try:
-
                     user_data = Clerbie.objects.get(nickname=str(user))
-
                 except:
-
                     raise serializers.ValidationError({"nickname": "User does not exist."})
-
 
             response = Response({
                 'access_token': access_token,
@@ -191,11 +154,9 @@ class LoginUser(generics.GenericAPIView):
 
             set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
 
-
             return response
 
         except Exception as e:
-
             return Response({'errors': {'error': str(e)}}, status=status.HTTP_401_UNAUTHORIZED)
 
 @extend_schema(tags=['Authorization'])
@@ -246,6 +207,21 @@ def refresh_token_view(request):
     except Exception as e:
 
         return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# TODO: Bind Email functionallity
+
+# class BindEmail(generics.UpdateAPIView):
+
+#     queryset = Clerbie.objects.all()
+#     permission_classes = [IsAuthenticated]
+#     authentication_classes = [JWTAuthentication]
+
+#     def get_object(self):
+#         user = self.request.user
+#         if user is None:
+#             raise PermissionDenied("Authentication required.")
+#         return user
 
 @extend_schema(tags=['Password'])
 class RequestPasswordRecovery(generics.GenericAPIView):
@@ -323,30 +299,7 @@ class PasswordRecovery(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@extend_schema(tags=['User-data'])
-class GetUserData(generics.GenericAPIView):
 
-    """
-    Endpoint for getting user data.
-
-    This endpoint allows the take info about user account.
-    """
-
-    authentication_classes = [JWTAuthentication]
-    serializer_class = GetUserDataSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        request_user = self.request.user
-
-        user = get_user_by_request(request_user=request_user)
-
-        if user is None:
-            return Response({"error": "You should be authorized."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = self.get_serializer(user, context={'request_user': request.user})
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['Password'])
@@ -379,3 +332,29 @@ class ChangePassword(generics.UpdateAPIView):
         return Response({"errors": {
             field: error[0] for field, error in serializer.errors.items()
         }}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=['User-data'])
+class GetUserData(generics.GenericAPIView):
+
+    """
+    Endpoint for getting user data.
+
+    This endpoint allows the take info about user account.
+    """
+
+    authentication_classes = [JWTAuthentication]
+    serializer_class = GetUserDataSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        request_user = self.request.user
+
+        user = get_user_by_request(request_user=request_user)
+
+        if user is None:
+            return Response({"error": "You should be authorized."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(user, context={'request_user': request.user})
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

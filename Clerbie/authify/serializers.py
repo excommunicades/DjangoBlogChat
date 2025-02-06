@@ -285,3 +285,19 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(validated_data['new_password'])
         user.save()
         return user
+
+
+# TODO: BindEmail system
+
+# class BingEmailSerializer(serializers.Serializer):
+
+#     linked_email = serializers.CharField()
+#     password = serializers.CharField(write_only=True)
+
+#     def validate(self, attrs):
+
+#         user = self.context.get('user')
+#         if user:
+#             check_current_password(user, attrs['current_password'])
+#         validate_password_strength(attrs['new_password'])
+#         return attrs

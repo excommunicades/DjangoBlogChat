@@ -1,5 +1,6 @@
 import json
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -212,4 +213,4 @@ class ProjectBaseView:
     '''BaseView for project functionallity'''
 
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsProjectCreatorOrAdmin]
+    permission_classes = [IsProjectCreatorOrAdmin, IsAuthenticated]
