@@ -48,8 +48,6 @@ class CreateProject(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-
-
 @extend_schema(tags=['Projects'])
 class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
@@ -71,7 +69,7 @@ class DeleteProject(ProjectBaseView, generics.DestroyAPIView):
     def perform_destroy(self, instance):
         super().perform_destroy(instance)
 
-@extend_schema(tags=['Projects'])
+@extend_schema(tags=['Projects | Offers'])
 class CreateProjectOffer(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -94,7 +92,7 @@ class CreateProjectOffer(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@extend_schema(tags=['Projects'])
+@extend_schema(tags=['Projects | Offers'])
 class ResponseOffer(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -123,8 +121,7 @@ class ResponseOffer(generics.GenericAPIView):
 
 from profile.serializers import KickProjectMemberSerializer
 
-@extend_schema(tags=['Projects'])
-
+@extend_schema(tags=['Projects | Members'])
 class KickProjectMember(ProjectBaseView, generics.DestroyAPIView):
 
     queryset = Projects.objects.prefetch_related('users')
@@ -163,7 +160,7 @@ class KickProjectMember(ProjectBaseView, generics.DestroyAPIView):
             status=status.HTTP_200_OK
         )
 
-
+@extend_schema(tags=['Projects | Members'])
 class LeaveFromProject(generics.DestroyAPIView):
 
     queryset = Projects.objects.prefetch_related('users')

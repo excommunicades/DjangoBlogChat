@@ -59,7 +59,7 @@ class GetFriendsList(generics.ListAPIView):
         })
 
 
-@extend_schema(tags=['Friends'])
+@extend_schema(tags=['Friends | Offers'])
 class CreateFriendship(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -86,7 +86,7 @@ class CreateFriendship(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=['Friends'])
+@extend_schema(tags=['Friends | Offers'])
 class RespondToFriendship(generics.GenericAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -135,7 +135,7 @@ class RemoveFriendship(generics.GenericAPIView):
         return Response({"error": "Friend was removed successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(tags=['Friends'])
+@extend_schema(tags=['Friends | Offers'])
 class DeleteFriendOffer(generics.DestroyAPIView):
 
     '''deletes user's friend offer'''
