@@ -183,10 +183,38 @@ class LeaveFromProject(generics.DestroyAPIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         else:
-            return Response(
-                {"error": f"You can not leave from your project. You need to DELETE your project!"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if len(list(project.users.all())) != 1:
+                serializer = self.get_serializer(data=request.data)
+                if serializer.is_valid():
+                    try:
+                        creator_to = serializer.validated_data['creator_to']
+                        if creator_to:
+                            if int(creator_to) != int(user_id):
+                                if project.users.filter(id=creator_to).exists():
+                                    project.creator = Clerbie.objects.get(id=creator_to)
+                                    project.save()
+                                    project.users.remove(user_id)
+                                    return Response(
+                                                {"message": f"You leaved from this project! New Owner of this project with id {creator_to}"},
+                                                status=status.HTTP_200_OK
+                                            )
+                                else:
+                                    return Response(
+                                        {"error": f"This user is not a member of your project."},
+                                        status=status.HTTP_400_BAD_REQUEST
+                                    ) 
+                            else:
+                                return Response(
+                                    {"error": f"You need to transfer your creator status to another member or delete your project."},
+                                    status=status.HTTP_400_BAD_REQUEST
+                                ) 
+                    except:
+                        return Response(
+                            {"error": f"You need to transfer your creator status to another member or delete your project."},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+            else:
+                project.users.remove(user_id)
         return Response(
             {"message": "You leaved from this project!"},
             status=status.HTTP_200_OK

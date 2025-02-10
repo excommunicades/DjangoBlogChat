@@ -410,4 +410,5 @@ class KickProjectMemberSerializer(serializers.Serializer):
         return value
 
 class LeaveFromProjectSerializer(serializers.Serializer):
-    pass
+    
+    creator_to = serializers.CharField(required=False, allow_blank=True)
