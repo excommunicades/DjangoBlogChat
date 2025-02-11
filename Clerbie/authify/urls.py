@@ -32,9 +32,9 @@ urlpatterns = [
     path('register-confirm', RegisterConfirm.as_view(), name="user_registration_confirm"),
 
     #password actions
-    path('request-password-recovery', RequestPasswordRecovery.as_view(), name="request_password_recovery"),
-    path('password-recovery', PasswordRecovery.as_view(), name="password_recovery"),
-    path('change-password', ChangePassword.as_view(), name='change_password'),
+    path('password/recovery/request', RequestPasswordRecovery.as_view(), name="request_password_recovery"),
+    path('password/recovery/confirm', PasswordRecovery.as_view(), name="password_recovery"),
+    path('password/change', ChangePassword.as_view(), name='change_password'),
 
     #token
     path('token/refresh', refresh_token_view, name='token_refresh'),

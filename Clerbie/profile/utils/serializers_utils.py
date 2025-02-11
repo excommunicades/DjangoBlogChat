@@ -1,5 +1,6 @@
 import io
 from PIL import Image
+from datetime import date
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from drf_spectacular.utils import extend_schema_field
@@ -14,7 +15,7 @@ from profile.models import (
     Hobby,
     Offers,
     Projects,
-    Education,
+    University,
     Technologies,
     Certificates,
     InboxMessage,
@@ -59,8 +60,8 @@ class HobbySerializer(serializers.ModelSerializer):
 
 class EducationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Education
-        fields = ['name']
+        model = Clerbie_education
+        fields = ['user', 'university', 'specialty', 'started_at', 'ended_at']
 
 class CertificateSerializer(serializers.ModelSerializer):
     class Meta:

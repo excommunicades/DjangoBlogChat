@@ -3,8 +3,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.utils import timezone
 from django.db.models import Q
@@ -17,6 +16,7 @@ from profile.serializers import (
     UpdateSocialsSerializer,
     FriendsOffersSerializer,
     GetUserProfileSerializer,
+    UpdateEducationSerializer,
     UpdateGeneralDataSerializer,
 )
 
@@ -30,6 +30,7 @@ from authify.models import Clerbie
 from profile.models import (
     Offers,
     Clerbie_friends,
+    Clerbie_education,
 )
 
 @extend_schema(tags=['Profile'])
@@ -129,6 +130,28 @@ class UpdateSocials(generics.UpdateAPIView):
         user_profile = self.request.user
         
         if not user_profile:
-            raise PermissionDenied("Профиль пользователя не найден.")
+            raise PermissionDenied("Profile does not exist.")
         
         return user_profile
+
+@extend_schema(tags=['Profile'])
+class UpdateUserEducation(generics.UpdateAPIView):
+
+    '''Endpoint for add|remove education to user profile '''
+
+    queryset = Clerbie_education.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = UpdateEducationSerializer
+
+
+    def get_object(self):
+
+        """Ensures that the user can only update their own educational in profile"""
+
+        user = self.request.user
+        
+        if not user:
+            raise PermissionDenied("User does not exist.")
+
+        return user

@@ -237,29 +237,28 @@ class RequestPasswordRecovery(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
 
+        if request.user.is_authenticated:
+            return Response(
+                {"error": "You are already logged in. You cannot request a password recovery code."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-        
-            user_data = serializer.validated_data
 
+            user_data = serializer.validated_data
             recovery_service = RequestPasswordRecoveryService(user_data)
 
             try:
-
                 recovery_code = recovery_service.execute()
-
                 request.session['user_data'] = user_data
-
                 return Response({"message": "We sent you a password recovery code."}, status=status.HTTP_200_OK)
-
             except Exception as e:
-
                 return Response({"errors": {"message": str(e)}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
         errors = serializer.errors
-
         formatted_errors = {field: error[0] for field, error in errors.items()}
 
         return Response({"errors": formatted_errors}, status=status.HTTP_400_BAD_REQUEST)

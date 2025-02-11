@@ -412,3 +412,68 @@ class KickProjectMemberSerializer(serializers.Serializer):
 class LeaveFromProjectSerializer(serializers.Serializer):
     
     creator_to = serializers.CharField(required=False, allow_blank=True)
+
+
+class UpdateEducationSerializer(serializers.ModelSerializer):
+
+    '''Allows user to add or remove education'''
+
+    university = serializers.CharField()
+    ended_at = serializers.DateField(required=False)
+
+    class Meta:
+        model = Clerbie_education
+        fields = [
+            'university',
+            'specialty',
+            'started_at',
+            'ended_at']
+
+    def validate_university(self, value):
+
+        '''Ensures that the university is either creater or fetched.'''
+
+        university_name = value.strip()
+        if not university_name:
+            raise serializers.ValidationError({"university": "university field can not be empty"})
+
+        university, created = University.objects.get_or_create(name=university_name)
+
+        return university
+
+    def validate_ended_at(self, value):
+        print(value)
+        return value
+
+
+    def update(self, instance, validated_data):
+
+        university = validated_data['university']
+        ended_at = validated_data['ended_at'] if 'ended_at' in validated_data else None
+
+        if ended_at and ended_at > date.today():
+            raise serializers.ValidationError({"ended_at": "End date cannot be in the future."})
+
+        validated_data['ended_at'] = ended_at
+
+        education_record = Clerbie_education.objects.filter(
+            user=instance,
+            university=university
+        ).first()
+
+        if education_record:
+
+            for attr, value in validated_data.items():
+                setattr(education_record, attr, value)
+            education_record.save()
+        else:
+            new_relation = Clerbie_education.objects.create(
+                user=instance,
+                university=university,
+                specialty=validated_data['specialty'],
+                started_at=validated_data['started_at'],
+                ended_at=ended_at
+            )
+            new_relation.save()
+
+        return super().update(instance, validated_data)

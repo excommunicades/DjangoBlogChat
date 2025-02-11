@@ -63,22 +63,21 @@ class Clerbie_hobbies(models.Model):
     class Meta:
         db_table = 'UserHobbies'
 
-class Education(models.Model):
+class University(models.Model):
 
     name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.name
     class Meta:
         db_table = 'Educations'
 class Clerbie_education(models.Model):
-    user = models.ForeignKey(Clerbie, related_name='education', on_delete=models.CASCADE)
-    education = models.ManyToManyField(Education, related_name='users')
-    description = models.TextField(max_length=7000)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.nickname}'s hobby: {self.hobby.name}"
+    user = models.ForeignKey(Clerbie ,related_name='users', on_delete=models.CASCADE)
+    university = models.ForeignKey(University, related_name='universities',max_length=50, blank=False, null=True, on_delete=models.CASCADE)
+    specialty = models.CharField(max_length=50, blank=False, null=True)
+    started_at = models.DateField(blank=False, null=True)
+    ended_at = models.DateField(null=True, blank=True)
 
     class Meta:
         db_table = 'UserEducations'
