@@ -157,7 +157,7 @@ class UpdateUserEducation(generics.UpdateAPIView):
 
         return user
 
-
+@extend_schema(tags=['Profile'])
 class RemoveEducation(generics.DestroyAPIView):
 
     '''Removes education from user profile. '''
