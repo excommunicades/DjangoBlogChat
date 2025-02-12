@@ -58,7 +58,14 @@ class HobbySerializer(serializers.ModelSerializer):
         model = Hobby
         fields = ['name']
 
+class UniversitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = ['id', 'name']
+
 class EducationSerializer(serializers.ModelSerializer):
+
+    university = UniversitySerializer()
     class Meta:
         model = Clerbie_education
         fields = ['user', 'university', 'specialty', 'started_at', 'ended_at']
