@@ -419,11 +419,14 @@ class UpdateEducationSerializer(serializers.ModelSerializer):
     '''Allows user to add or remove education'''
 
     university = serializers.CharField()
+    specialty = serializers.CharField()
+    started_at = serializers.DateField()
     ended_at = serializers.DateField(required=False)
 
     class Meta:
         model = Clerbie_education
         fields = [
+            'id',
             'university',
             'specialty',
             'started_at',
@@ -441,39 +444,49 @@ class UpdateEducationSerializer(serializers.ModelSerializer):
 
         return university
 
-    def validate_ended_at(self, value):
-        print(value)
-        return value
-
-
     def update(self, instance, validated_data):
 
-        university = validated_data['university']
-        ended_at = validated_data['ended_at'] if 'ended_at' in validated_data else None
+        fields = {k: (validated_data[k] if k in validated_data else None) for k, v in {"university": None,  "specialty": None, "started_at": None, "ended_at": None}.items()}
+        errors = [k for k in fields.keys() if fields[k] is None and k != 'ended_at']
+        ended_at = fields['ended_at']
+
+        if errors:
+            raise serializers.ValidationError({"errors": {k : 'This field is required.' for k in errors}})
 
         if ended_at and ended_at > date.today():
             raise serializers.ValidationError({"ended_at": "End date cannot be in the future."})
 
-        validated_data['ended_at'] = ended_at
+        if fields['started_at'] and fields['started_at'] > date.today():
+            raise serializers.ValidationError({"started_at": "Start date cannot be in the future."})
 
         education_record = Clerbie_education.objects.filter(
             user=instance,
-            university=university
+            university=fields['university']
         ).first()
 
         if education_record:
 
-            for attr, value in validated_data.items():
+            for attr, value in fields.items():
+                print(value)
                 setattr(education_record, attr, value)
             education_record.save()
+            return super().update(education_record, fields)
+
         else:
             new_relation = Clerbie_education.objects.create(
                 user=instance,
-                university=university,
-                specialty=validated_data['specialty'],
-                started_at=validated_data['started_at'],
+                university=fields['university'],
+                specialty=fields['specialty'],
+                started_at=fields['started_at'],
                 ended_at=ended_at
             )
+            
             new_relation.save()
+            return new_relation
 
-        return super().update(instance, validated_data)
+
+class RemoveEducationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Clerbie_education
+        fields = ['university']

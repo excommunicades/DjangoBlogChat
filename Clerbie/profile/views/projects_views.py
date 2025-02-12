@@ -215,6 +215,7 @@ class LeaveFromProject(generics.DestroyAPIView):
                         )
             else:
                 project.users.remove(user_id)
+                project.delete()
         return Response(
             {"message": "You leaved from this project!"},
             status=status.HTTP_200_OK

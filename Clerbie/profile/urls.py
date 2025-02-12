@@ -7,6 +7,7 @@ from profile.views.profile_views import (
     GetProfile,
     DeleteOffer,
     UpdateSocials,
+    RemoveEducation,
     UpdateUserEducation,
     UpdateUserGeneralData,
 )
@@ -39,6 +40,7 @@ urlpatterns = [
     path('general/update', UpdateUserGeneralData.as_view(), name='update-general-data'),
     path('socials/update', UpdateSocials.as_view(), name='update-social-links'),
     path('education/update', UpdateUserEducation.as_view(), name='update-education'),
+    path('education/remove', RemoveEducation.as_view(), name='remove-education'),
 
 
     # Friend Actions
