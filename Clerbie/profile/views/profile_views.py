@@ -188,7 +188,7 @@ class RemoveEducation(generics.DestroyAPIView):
                 return Response({"error": "Education record not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema(tags=['Profile'])
 class UpdateCertificates(generics.UpdateAPIView):
 
     '''Updates or creates certificates at user profile'''
@@ -207,7 +207,7 @@ class UpdateCertificates(generics.UpdateAPIView):
 
         return user
 
-
+@extend_schema(tags=['Profile'])
 class DeleteCertificate(generics.DestroyAPIView):
 
     permission_classes = [IsAuthenticated]
