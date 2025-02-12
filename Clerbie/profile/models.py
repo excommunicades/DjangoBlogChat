@@ -11,6 +11,20 @@ from profile.choices import (
     STATUS_CHOICES,
 )
 
+def image_upload_certification_function(instance, filename):
+
+    model_name = instance.__class__.__name__.lower()
+    print(model_name == 'clerbie_certificates')
+    if model_name == "clerbie_certificates":
+        folder_name = "certificates"
+
+    else:
+        folder_name = "other_images"
+
+    safe_title = instance.title.replace(" ", "_").replace("/", "_")
+
+    return os.path.join(folder_name, safe_title, filename)
+
 class Clerbie_reactions(models.Model):
 
     user = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='user_reactions')
@@ -73,7 +87,7 @@ class University(models.Model):
     class Meta:
         db_table = 'Educations'
 class Clerbie_education(models.Model):
-    user = models.ForeignKey(Clerbie ,related_name='users', on_delete=models.CASCADE)
+    user = models.ForeignKey(Clerbie ,related_name='education_users', on_delete=models.CASCADE)
     university = models.ForeignKey(University, related_name='universities',max_length=50, blank=False, null=True, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=50, blank=False, null=True)
     started_at = models.DateField(blank=False, null=True)
@@ -81,27 +95,40 @@ class Clerbie_education(models.Model):
 
     class Meta:
         db_table = 'UserEducations'
-class Certificates(models.Model):
+# class Certificates(models.Model):
 
-    name = models.CharField(max_length=100)
-    description = models.TextField(max_length=7000, blank=True, null=True)
+#     name = models.CharField(max_length=100)
+#     description = models.TextField(max_length=7000, blank=True, null=True)
 
-    def __str__(self):
-        return self.name
-    class Meta:
-        db_table = 'Certificates'
+#     def __str__(self):
+#         return self.name
+#     class Meta:
+#         db_table = 'Certificates'
+# class Clerbie_certificates(models.Model):
+
+#     user = models.ForeignKey(Clerbie, related_name='certificates', on_delete=models.CASCADE)
+#     certificates = models.ManyToManyField(Certificates, related_name='users')
+#     description = models.TextField(max_length=7000,  blank=True, null=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"{self.user.nickname}'s hobby: {self.hobby.name}"
+
+#     class Meta:
+#         db_table = 'UserCertificates'
+
 class Clerbie_certificates(models.Model):
 
-    user = models.ForeignKey(Clerbie, related_name='certificates', on_delete=models.CASCADE)
-    certificates = models.ManyToManyField(Certificates, related_name='users')
-    description = models.TextField(max_length=7000,  blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.nickname}'s hobby: {self.hobby.name}"
+    user = models.ForeignKey('authify.Clerbie', related_name='certificates_users', on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, blank=False, null=True)
+    photo = models.ImageField(upload_to=image_upload_certification_function, null=True, blank=False)
+    organization = models.CharField(max_length=100, blank=False, null=True)
+    issued_at = models.DateField(blank=False, null=True)
+    description = models.TextField(max_length=2500,  blank=True, null=True)
 
     class Meta:
         db_table = 'UserCertificates'
+
 class Technologies(models.Model):
 
     name = models.CharField(max_length=100)

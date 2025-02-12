@@ -6,6 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 from drf_spectacular.utils import extend_schema_field
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 from django.db.models import Q
 
@@ -17,13 +18,12 @@ from profile.models import (
     Projects,
     University,
     Technologies,
-    Certificates,
     InboxMessage,
-    UserWorkExperience,
     Clerbie_friends,
     Clerbie_hobbies,
     Clerbie_education,
     Clerbie_reactions,
+    UserWorkExperience,
     Clerbie_certificates,
 )
 
@@ -72,8 +72,8 @@ class EducationSerializer(serializers.ModelSerializer):
 
 class CertificateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Certificates
-        fields = ['name', 'description']
+        model = Clerbie_certificates
+        fields = ['id', 'title', 'photo', 'organization', 'issued_at', 'description']
 
 class WorkExperienceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -155,3 +155,10 @@ def validate_avatar(self, value):
         )
 
     return value
+
+
+def validate_image_size(value):
+
+    max_size = 5 * 1024 * 1024  # 5 MB
+    if value.size > max_size:
+        raise ValidationError(f'File size must not exceed {max_size / (1024 * 1024)} MB.')

@@ -19,10 +19,10 @@ def image_upload_function(instance, filename):
 
     model_name = instance.__class__.__name__.lower()
 
-    if model_name == "Clerbie":
+    if model_name == "clerbie":
         folder_name = "users_avatars"
 
-    elif model_name == "ClerbieManager":
+    elif model_name == "clerbieManager":
         folder_name = "users_avatars"
 
     else:

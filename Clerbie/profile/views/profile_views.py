@@ -1,9 +1,10 @@
 from drf_spectacular.utils import extend_schema
 
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.utils import timezone
 from django.db.models import Q
@@ -19,6 +20,8 @@ from profile.serializers import (
     UpdateEducationSerializer,
     RemoveEducationSerializer,
     UpdateGeneralDataSerializer,
+    UpdateCertificateSerializer,
+    DeleteCertificateSerializer,
 )
 
 from profile.utils.views_utils import get_user_by_request
@@ -32,6 +35,7 @@ from profile.models import (
     Offers,
     Clerbie_friends,
     Clerbie_education,
+    Clerbie_certificates,
 )
 
 @extend_schema(tags=['Profile'])
@@ -183,3 +187,43 @@ class RemoveEducation(generics.DestroyAPIView):
             except Clerbie_education.DoesNotExist:
                 return Response({"error": "Education record not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UpdateCertificates(generics.UpdateAPIView):
+
+    '''Updates or creates certificates at user profile'''
+
+    queryset = Clerbie_certificates.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = UpdateCertificateSerializer
+
+    def get_object(self):
+
+        user = self.request.user
+
+        if not user:
+            raise PermissionDenied("User does not exist.")
+
+        return user
+
+
+class DeleteCertificate(generics.DestroyAPIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = DeleteCertificateSerializer
+
+    def get_object(self):
+
+        certificate_id = self.kwargs.get('id')
+
+        certificate = Clerbie_certificates.objects.filter(id=certificate_id).first()
+
+        if not certificate:
+            raise PermissionDenied("Certificate does not exist.")
+
+        if certificate.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this certificate.")
+
+        return certificate

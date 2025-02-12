@@ -490,3 +490,79 @@ class RemoveEducationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clerbie_education
         fields = ['university']
+
+
+class UpdateCertificateSerializer(serializers.ModelSerializer):
+
+    title = serializers.CharField()
+    photo = serializers.ImageField(
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif']),
+            validate_image_size
+        ]
+    )
+    organization = serializers.CharField()
+    issued_at = serializers.DateField()
+    description = serializers.CharField(required=False)
+
+    class Meta:
+        model = Clerbie_certificates
+        fields = [
+            'id',
+            'title',
+            'photo',
+            'organization',
+            'issued_at',
+            'description'
+        ]
+
+    def validate(self, attrs):
+
+        for f in [f for f in self.fields if f != 'description']:
+            if f not in attrs:
+                raise serializers.ValidationError({"errors": f"{f}: 'This field is required.'"})
+        return attrs
+
+    def update(self, instance, validated_data):
+
+
+        if validated_data['issued_at'] and validated_data['issued_at'] > date.today():
+            raise serializers.ValidationError({"issued_at": "You can't get certificate in the future."})
+
+        certificate = Clerbie_certificates.objects.filter(
+            user=instance,
+            title=validated_data.get('title')
+        ).first()
+
+        if certificate:
+            for attr, value in validated_data.items():
+                setattr(certificate, attr, value)
+            if not 'description' in validated_data.keys():
+                setattr(certificate, 'description', None)
+            certificate.save()
+            return certificate
+
+        else:
+            new_certificate = Clerbie_certificates.objects.create(
+                user=instance,
+                title=validated_data['title'],
+                photo=validated_data['photo'],
+                organization=validated_data['organization'],
+                description=validated_data['description'] if 'description' in validated_data.keys() else None,
+                issued_at=validated_data['issued_at'],
+            )
+            new_certificate.save()
+            return new_relation
+
+
+class DeleteCertificateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Clerbie_education
+        fields = [
+            'title',
+            'photo',
+            'organization',
+            'issued_at',
+            'description'
+        ]
