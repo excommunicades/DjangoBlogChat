@@ -4,9 +4,11 @@ from django.conf import settings
 
 from profile.views.profile_views import (
     GetInbox,
+    RemoveJob,
     GetProfile,
     DeleteOffer,
     UpdateSocials,
+    UpdateUserJobs,
     RemoveEducation,
     DeleteCertificate,
     UpdateCertificates,
@@ -45,6 +47,8 @@ urlpatterns = [
     path('education/remove', RemoveEducation.as_view(), name='remove-education'),
     path('certificates/update', UpdateCertificates.as_view(), name='update-add-certificate'),
     path('certificates/delete/<int:id>', DeleteCertificate.as_view(), name='delete-certificate'),
+    path('jobs/update', UpdateUserJobs.as_view(), name='update-job'),
+    path('jobs/remove', RemoveJob.as_view(), name='remove-job'),
 
 
     # Friend Actions

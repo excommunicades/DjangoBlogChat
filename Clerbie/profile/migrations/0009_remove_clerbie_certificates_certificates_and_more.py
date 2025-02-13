@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='clerbie_certificates',
             name='photo',
-            field=models.ImageField(null=True, upload_to=profile.models.image_upload_certification_function),
+            field=models.ImageField(null=True, upload_to=profile.models.image_upload_function),
         ),
         migrations.AddField(
             model_name='clerbie_certificates',

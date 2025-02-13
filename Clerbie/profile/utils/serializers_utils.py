@@ -12,18 +12,16 @@ from django.db.models import Q
 
 from authify.models import Clerbie
 from profile.models import (
-    Work,
-    Hobby,
     Offers,
     Projects,
+    Companies,
     University,
-    Technologies,
     InboxMessage,
+    Technologies,
     Clerbie_friends,
-    Clerbie_hobbies,
     Clerbie_education,
     Clerbie_reactions,
-    UserWorkExperience,
+    UserJobExperience,
     Clerbie_certificates,
 )
 
@@ -53,11 +51,6 @@ class FriendOfferSerializer(serializers.ModelSerializer):
             'offer_code',
             'description']
 
-class HobbySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Hobby
-        fields = ['name']
-
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
         model = University
@@ -75,10 +68,18 @@ class CertificateSerializer(serializers.ModelSerializer):
         model = Clerbie_certificates
         fields = ['id', 'title', 'photo', 'organization', 'issued_at', 'description']
 
-class WorkExperienceSerializer(serializers.ModelSerializer):
+class CompanySerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserWorkExperience
-        fields = ['work', 'start_date', 'end_date', 'description']
+        model = Companies
+        fields = ['id','name','photo', 'description']
+
+
+class JobExperienceSerializer(serializers.ModelSerializer):
+
+    company = CompanySerializer()
+    class Meta:
+        model = UserJobExperience
+        fields = ['id','company','position', 'started_at','ended_at', 'description']
 
 class ReactionSerializer(serializers.ModelSerializer):
     class Meta:

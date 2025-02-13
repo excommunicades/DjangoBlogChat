@@ -27,7 +27,6 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
 
     # Related fields for friends, hobbies, education, certificates, work experience, and reactions
     friends = serializers.SerializerMethodField()
-    hobbies = serializers.SerializerMethodField()
     education = serializers.SerializerMethodField()
     certificates = serializers.SerializerMethodField()
     work_experience = serializers.SerializerMethodField()
@@ -56,7 +55,6 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             'two_factor_method',
             'socials',
             'friends',
-            'hobbies',
             'education',
             'certificates',
             'work_experience',
@@ -97,11 +95,6 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         friends = [r.user1 if r.user2 == obj else r.user2 for r in relations]
         return ClerbieSerializer(friends, many=True).data
 
-
-    def get_hobbies(self, obj):
-        hobbies = Clerbie_hobbies.objects.filter(user=obj)
-        return HobbySerializer(hobbies, many=True).data
-
     def get_education(self, obj):
         education = Clerbie_education.objects.filter(user=obj)
         return EducationSerializer(education, many=True).data
@@ -111,8 +104,8 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         return CertificateSerializer(certificates, many=True).data
 
     def get_work_experience(self, obj):
-        work_experience = UserWorkExperience.objects.filter(user=obj)
-        return WorkExperienceSerializer(work_experience, many=True).data
+        work_experience = UserJobExperience.objects.filter(user=obj).order_by('-started_at')
+        return JobExperienceSerializer(work_experience, many=True).data
 
     def get_reactions(self, obj):
         reactions = Clerbie_reactions.objects.filter(user=obj)
@@ -566,3 +559,87 @@ class DeleteCertificateSerializer(serializers.ModelSerializer):
             'issued_at',
             'description'
         ]
+
+
+class UpdateJobSerializer(serializers.ModelSerializer):
+
+    '''Allows user to add or remove education'''
+
+    company = serializers.CharField()
+    position = serializers.CharField()
+    started_at = serializers.DateField()
+    ended_at = serializers.DateField(required=False)
+    description = serializers.CharField(required=False)
+
+    class Meta:
+        model = UserJobExperience
+        fields = [
+            'company',
+            'position',
+            'started_at',
+            'ended_at',
+            'description']
+
+    def validate_company(self, value):
+
+        '''Ensures that the company is either creater or fetched.'''
+
+        company_name = value.strip()
+        if not company_name:
+            raise serializers.ValidationError({"company": "company field can not be empty"})
+
+        company, created = Companies.objects.get_or_create(name=company_name)
+
+        return company
+
+    def validate(self, attrs):
+
+        for f in [f for f in self.fields if f != 'description' and f != 'ended_at']:
+            if f not in attrs:
+                raise serializers.ValidationError({"errors": f"{f}: 'This field is required.'"})
+        return attrs
+
+    def update(self, instance, validated_data):
+
+        if validated_data['started_at'] and validated_data['started_at'] > date.today():
+            raise serializers.ValidationError({"started_at": "You can't start to work in the future."})
+        
+        if 'ended_at' in validated_data.keys():
+            if validated_data['ended_at'] and validated_data['ended_at'] > date.today():
+                raise serializers.ValidationError({"ended_at": "You can't end your work in the future."})
+            if validated_data['ended_at'] and validated_data['ended_at'] < validated_data['started_at']:
+                raise serializers.ValidationError({"ended_at": "You can't end your work earlier than started."})
+
+        user_job = UserJobExperience.objects.filter(
+            user=instance,
+            company=validated_data.get('company')
+        ).first()
+
+        if user_job:
+            for attr, value in validated_data.items():
+                setattr(user_job, attr, value)
+            if not 'description' in validated_data.keys():
+                setattr(user_job, 'description', None)
+            if not 'ended_at' in validated_data.keys():
+                setattr(user_job, 'ended_at', None)
+            user_job.save()
+            return user_job
+
+        else:
+            new_user_job_relation = UserJobExperience.objects.create(
+                user=instance,
+                company=validated_data['company'],
+                position=validated_data['position'],
+                started_at=validated_data['started_at'],
+                ended_at=validated_data['ended_at'] if 'ended_at' in validated_data.keys() else None,
+                description=validated_data['description'] if 'description' in validated_data.keys() else None,
+            )
+            new_user_job_relation.save()
+            return new_user_job_relation
+
+
+class RemoveJobSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserJobExperience
+        fields = ['company', 'position']

@@ -12,6 +12,8 @@ from django.db.models import Q
 from profile.serializers import (
     FriendSerializer,
     ProjectSerializer,
+    UpdateJobSerializer,
+    RemoveJobSerializer,
     ProjectOfferSerializer,
     CreateProjectSerializer,
     UpdateSocialsSerializer,
@@ -35,6 +37,7 @@ from profile.models import (
     Offers,
     Clerbie_friends,
     Clerbie_education,
+    UserJobExperience,
     Clerbie_certificates,
 )
 
@@ -227,3 +230,54 @@ class DeleteCertificate(generics.DestroyAPIView):
             raise PermissionDenied("You do not have permission to delete this certificate.")
 
         return certificate
+
+
+@extend_schema(tags=['Profile'])
+class UpdateUserJobs(generics.UpdateAPIView):
+
+    '''Endpoint for add|remove education to user profile '''
+
+    queryset = UserJobExperience.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = UpdateJobSerializer
+
+
+    def get_object(self):
+
+        """Ensures that the user can only update their own job in profile"""
+
+        user = self.request.user
+
+        if not user:
+            raise PermissionDenied("User does not exist.")
+
+        return user
+
+@extend_schema(tags=['Profile'])
+class RemoveJob(generics.DestroyAPIView):
+
+    '''Removes education from user profile. '''
+
+    serializer_class = RemoveJobSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+    def get_queryset(self):
+        return UserJobExperience.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=self.request.data)
+
+        if serializer.is_valid():
+            company = serializer.validated_data['company']
+            position = serializer.validated_data['position']
+            try:
+                job = UserJobExperience.objects.get(user=self.request.user, company=company, position=position)
+                job.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except UserJobExperience.DoesNotExist:
+                return Response({"error": "Job record not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

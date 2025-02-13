@@ -11,13 +11,14 @@ from profile.choices import (
     STATUS_CHOICES,
 )
 
-def image_upload_certification_function(instance, filename):
+def image_upload_function(instance, filename):
 
     model_name = instance.__class__.__name__.lower()
-    print(model_name == 'clerbie_certificates')
+
     if model_name == "clerbie_certificates":
         folder_name = "certificates"
-
+    elif model_name == "companies":
+        folder_name = "companies_logo"
     else:
         folder_name = "other_images"
 
@@ -55,27 +56,6 @@ class Clerbie_friends(models.Model):
 
     class Meta:
         db_table = 'UserFriends'
-class Hobby(models.Model):
-
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'Hobbies'
-
-class Clerbie_hobbies(models.Model):
-    user = models.ForeignKey(Clerbie, related_name='hobbies', on_delete=models.CASCADE)
-    hobby = models.ForeignKey(Hobby, related_name='users', on_delete=models.CASCADE)
-    description = models.TextField(max_length=7000, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.nickname}'s hobby: {self.hobby.name}"
-
-    class Meta:
-        db_table = 'UserHobbies'
 
 class University(models.Model):
 
@@ -95,33 +75,12 @@ class Clerbie_education(models.Model):
 
     class Meta:
         db_table = 'UserEducations'
-# class Certificates(models.Model):
-
-#     name = models.CharField(max_length=100)
-#     description = models.TextField(max_length=7000, blank=True, null=True)
-
-#     def __str__(self):
-#         return self.name
-#     class Meta:
-#         db_table = 'Certificates'
-# class Clerbie_certificates(models.Model):
-
-#     user = models.ForeignKey(Clerbie, related_name='certificates', on_delete=models.CASCADE)
-#     certificates = models.ManyToManyField(Certificates, related_name='users')
-#     description = models.TextField(max_length=7000,  blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.user.nickname}'s hobby: {self.hobby.name}"
-
-#     class Meta:
-#         db_table = 'UserCertificates'
 
 class Clerbie_certificates(models.Model):
 
     user = models.ForeignKey('authify.Clerbie', related_name='certificates_users', on_delete=models.CASCADE)
     title = models.CharField(max_length=100, blank=False, null=True)
-    photo = models.ImageField(upload_to=image_upload_certification_function, null=True, blank=False)
+    photo = models.ImageField(upload_to=image_upload_function, null=True, blank=False)
     organization = models.CharField(max_length=100, blank=False, null=True)
     issued_at = models.DateField(blank=False, null=True)
     description = models.TextField(max_length=2500,  blank=True, null=True)
@@ -153,22 +112,26 @@ class Projects(models.Model):
     class Meta:
         db_table = 'Projects'
 
-class Work(models.Model):
+class Companies(models.Model):
+
     name = models.CharField(max_length=100)
+    photo = models.ImageField(default='default/default_company_logo.png',upload_to=image_upload_function, null=False, blank=False)
     description = models.TextField(max_length=7000, blank=True, null=True)
 
     def __str__(self):
         return self.name
     class Meta:
-        db_table = 'Works'
+        db_table = 'Companies'
 
 
-class UserWorkExperience(models.Model):
-    user = models.ForeignKey(Clerbie, related_name='work_experience', on_delete=models.CASCADE)
-    work = models.ForeignKey(Work, related_name='users', on_delete=models.CASCADE)
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)
-    description = models.TextField(max_length=7000, blank=True, null=True)
+class UserJobExperience(models.Model):
+
+    user = models.ForeignKey(Clerbie, related_name='work_users', on_delete=models.CASCADE)
+    company = models.ForeignKey(Companies, related_name='users_work', on_delete=models.CASCADE, null=True, blank=False)
+    position = models.CharField(max_length=100, blank=False, null=True)
+    started_at = models.DateField(null=True, blank=True)
+    ended_at = models.DateField(null=True, blank=True)
+    description = models.TextField(max_length=3000, blank=True, null=True)
 
     def duration(self):
         if self.end_date:
