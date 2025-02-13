@@ -1,14 +1,8 @@
 import io
 from PIL import Image
-from datetime import date
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
-from drf_spectacular.utils import extend_schema_field
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.validators import FileExtensionValidator
-from django.utils import timezone
-from django.db.models import Q
 
 from authify.models import Clerbie
 from profile.models import (
@@ -25,14 +19,6 @@ from profile.models import (
     Clerbie_certificates,
 )
 
-from authify.choices import (
-    COUNTRIES,
-    TIME_ZONES,
-    GENDER_CHOICES,
-    USER_ROLE_CHOICES,
-    ACCOUNT_STATUS_CHOICES,
-    PROGRAMMING_ROLES_CHOICES,
-)
 
 class ClerbieSerializer(serializers.ModelSerializer):
     class Meta:

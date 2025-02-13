@@ -1,4 +1,41 @@
-from profile.utils.serializers_utils import *
+from datetime import date
+from rest_framework import serializers
+
+from django.core.validators import FileExtensionValidator
+from django.db.models import Q
+
+from authify.models import Clerbie
+from profile.models import (
+    Offers,
+    Projects,
+    Companies,
+    University,
+    Technologies,
+    Clerbie_friends,
+    Clerbie_education,
+    Clerbie_reactions,
+    UserJobExperience,
+    Clerbie_certificates,
+)
+
+from authify.choices import (
+    COUNTRIES,
+    TIME_ZONES,
+    GENDER_CHOICES,
+    USER_ROLE_CHOICES,
+    ACCOUNT_STATUS_CHOICES,
+    PROGRAMMING_ROLES_CHOICES,
+)
+from profile.utils.serializers_utils import (
+    ProjectSerializer,
+    ClerbieSerializer,
+    ReactionSerializer,
+    validate_image_size,
+    EducationSerializer,
+    CertificateSerializer,
+    TechnologiesSerializer,
+    JobExperienceSerializer,
+)
 
 class GetUserProfileSerializer(serializers.ModelSerializer):
     """
@@ -115,6 +152,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         projects = Projects.objects.filter(users=obj)
         return ProjectSerializer(projects, many=True).data
 
+
 class UpdateGeneralDataSerializer(serializers.ModelSerializer):
 
     technologies = serializers.ListField(child=serializers.CharField(), write_only=True)
@@ -163,6 +201,148 @@ class UpdateGeneralDataSerializer(serializers.ModelSerializer):
         return representation
 
 
+class FriendSerializer(serializers.ModelSerializer):
+
+    id = serializers.IntegerField(source='user2.id')
+    nickname = serializers.CharField(source='user2.nickname')
+    username = serializers.CharField(source='user2.username')
+    avatar = serializers.URLField(source='user2.avatar')
+    offer_code = serializers.CharField(required=False)
+
+    class Meta:
+        model = Clerbie_friends
+        fields = ['id', 'nickname', 'username', 'avatar', 'offer_code']
+
+    def to_representation(self, instance):
+
+        request_user = self.context.get('request_user')
+        representation = super().to_representation(instance)
+
+        if request_user != instance.user1:
+            avatar = instance.user1.avatar.url if instance.user1.avatar else None
+            representation['id'] = instance.user1.id
+            representation['nickname'] = instance.user1.nickname
+            representation['username'] = instance.user1.username
+            representation['avatar'] = avatar
+        return representation
+
+
+class FriendsOffersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clerbie_friends
+        fields = [
+            'id',
+            'status',
+            'offer_code',
+            'user1',
+            'user2',
+            'created_at',
+            'expires_at',
+            'description']
+
+
+class UpdateJobSerializer(serializers.ModelSerializer):
+
+    '''Allows user to add or remove education'''
+
+    company = serializers.CharField()
+    position = serializers.CharField()
+    started_at = serializers.DateField()
+    ended_at = serializers.DateField(required=False)
+    description = serializers.CharField(required=False)
+
+    class Meta:
+        model = UserJobExperience
+        fields = [
+            'company',
+            'position',
+            'started_at',
+            'ended_at',
+            'description']
+
+    def validate_company(self, value):
+
+        '''Ensures that the company is either creater or fetched.'''
+
+        company_name = value.strip()
+        if not company_name:
+            raise serializers.ValidationError({"company": "company field can not be empty"})
+
+        company, created = Companies.objects.get_or_create(name=company_name)
+
+        return company
+
+    def validate(self, attrs):
+
+        for f in [f for f in self.fields if f != 'description' and f != 'ended_at']:
+            if f not in attrs:
+                raise serializers.ValidationError({"errors": f"{f}: 'This field is required.'"})
+        return attrs
+
+    def update(self, instance, validated_data):
+
+        if validated_data['started_at'] and validated_data['started_at'] > date.today():
+            raise serializers.ValidationError({"started_at": "You can't start to work in the future."})
+        
+        if 'ended_at' in validated_data.keys():
+            if validated_data['ended_at'] and validated_data['ended_at'] > date.today():
+                raise serializers.ValidationError({"ended_at": "You can't end your work in the future."})
+            if validated_data['ended_at'] and validated_data['ended_at'] < validated_data['started_at']:
+                raise serializers.ValidationError({"ended_at": "You can't end your work earlier than started."})
+
+        user_job = UserJobExperience.objects.filter(
+            user=instance,
+            company=validated_data.get('company')
+        ).first()
+
+        if user_job:
+            for attr, value in validated_data.items():
+                setattr(user_job, attr, value)
+            if not 'description' in validated_data.keys():
+                setattr(user_job, 'description', None)
+            if not 'ended_at' in validated_data.keys():
+                setattr(user_job, 'ended_at', None)
+            user_job.save()
+            return user_job
+
+        else:
+            new_user_job_relation = UserJobExperience.objects.create(
+                user=instance,
+                company=validated_data['company'],
+                position=validated_data['position'],
+                started_at=validated_data['started_at'],
+                ended_at=validated_data['ended_at'] if 'ended_at' in validated_data.keys() else None,
+                description=validated_data['description'] if 'description' in validated_data.keys() else None,
+            )
+            new_user_job_relation.save()
+            return new_user_job_relation
+
+
+class RemoveJobSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserJobExperience
+        fields = ['company', 'position']
+
+
+class ProjectOfferSerializer(serializers.ModelSerializer):
+
+    project = serializers.CharField(source='project.name')
+    sender = serializers.CharField(source='sender.nickname')
+    
+    class Meta:
+        model = Offers
+        fields = ['id','offer_type','offer_code', 'project','description', 'sender', 'expires_at', 'status', 'created_at']
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        if 'offer_type' in representation:
+            representation['offer_type'] = f"project_{representation['offer_type']}"
+
+        return representation
+
+
 class CreateProjectSerializer(serializers.ModelSerializer):
 
     technologies = serializers.ListField(child=serializers.CharField(), write_only=True)
@@ -189,165 +369,6 @@ class CreateProjectSerializer(serializers.ModelSerializer):
         technologies = instance.technologies.all()
         representation['technologies'] = [tech.name for tech in technologies]
 
-        return representation
-
-class UpdateProjectSerializer(serializers.ModelSerializer):
-
-    technologies = serializers.ListField(child=serializers.CharField(), write_only=True)
-
-    class Meta:
-        model = Projects
-        fields = [
-            'name',
-            'description',
-            'technologies',
-        ]
-
-
-    def update(self, instance, validated_data):
-        user = self.context['request'].user
-
-        if instance.creator != user:
-            raise PermissionDenied("You do not have permission to update this project.")
-
-        technologies_data = validated_data.pop('technologies', [])
-
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
-        instance.save()
-
-        if technologies_data:
-
-            existing_technologies = Technologies.objects.filter(name__in=technologies_data)
-            existing_tech_names = [tech.name for tech in existing_technologies]
-
-            new_technologies = [Technologies(name=tech_name) for tech_name in technologies_data if tech_name not in existing_tech_names]
-            Technologies.objects.bulk_create(new_technologies)
-
-            all_technologies = existing_technologies | Technologies.objects.filter(name__in=technologies_data)
-            instance.technologies.set(all_technologies)
-
-        return instance
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-
-        technologies = instance.technologies.all()
-        representation['technologies'] = [tech.name for tech in technologies]
-
-        return representation
-
-class CreateOfferSerializer(serializers.ModelSerializer):
-    receiver = serializers.IntegerField()
-    expires_at = serializers.DateTimeField()
-    description = serializers.CharField(required=False, default=None)
-
-    class Meta:
-        model = Offers
-        fields = ['receiver', 'expires_at', 'description']
-
-    def validate_receiver(self, value):
-        try:
-            receiver = Clerbie.objects.get(id=value)
-        except Clerbie.DoesNotExist:
-            raise serializers.ValidationError("Receiver user not found.")
-        return value
-
-    def validate_expires_at(self, value):
-        if value <= timezone.now():
-            raise serializers.ValidationError("Expiration date must be in the future.")
-        return value
-
-
-class ProjectOfferSerializer(serializers.ModelSerializer):
-
-    project = serializers.CharField(source='project.name')
-    sender = serializers.CharField(source='sender.nickname')
-    
-    class Meta:
-        model = Offers
-        fields = ['id','offer_type','offer_code', 'project','description', 'sender', 'expires_at', 'status', 'created_at']
-    
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-
-        if 'offer_type' in representation:
-            representation['offer_type'] = f"project_{representation['offer_type']}"
-
-        return representation
-class FriendsOffersSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Clerbie_friends
-        fields = [
-            'id',
-            'status',
-            'offer_code',
-            'user1',
-            'user2',
-            'created_at',
-            'expires_at',
-            'description']
-
-
-class OfferResponseSerializer(serializers.ModelSerializer):
-    status = serializers.ChoiceField(choices=[('accepted', 'Accepted'), ('declined', 'Declined')])
-
-    class Meta:
-        model = Offers
-        fields = ['status']
-
-
-class CreateFriendshipSerializer(serializers.ModelSerializer):
-
-    user2 = serializers.IntegerField(read_only=True)
-    expires_at = serializers.DateTimeField()
-    description = serializers.CharField(required=False, default=None)
-
-
-    class  Meta:
-        model = Clerbie_friends
-        fields = [
-            'user2',
-            'expires_at',
-            'description'
-        ]
-
-    def validate_expires_at(self, value):
-        if value <= timezone.now():
-            raise serializers.ValidationError("Expiration date must be in the future.")
-        return value
-
-class FriendshipResponseSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=[('accepted', 'Accepted'), ('declined', 'Declined')])
-
-    class Meta:
-        model = Clerbie_friends
-        fields = ['status']
-
-
-class FriendSerializer(serializers.ModelSerializer):
-
-    id = serializers.IntegerField(source='user2.id')
-    nickname = serializers.CharField(source='user2.nickname')
-    username = serializers.CharField(source='user2.username')
-    avatar = serializers.URLField(source='user2.avatar')
-    offer_code = serializers.CharField(required=False)
-
-    class Meta:
-        model = Clerbie_friends
-        fields = ['id', 'nickname', 'username', 'avatar', 'offer_code']
-
-    def to_representation(self, instance):
-
-        request_user = self.context.get('request_user')
-        representation = super().to_representation(instance)
-
-        if request_user != instance.user1:
-            avatar = instance.user1.avatar.url if instance.user1.avatar else None
-            representation['id'] = instance.user1.id
-            representation['nickname'] = instance.user1.nickname
-            representation['username'] = instance.user1.username
-            representation['avatar'] = avatar
         return representation
 
 
@@ -385,26 +406,6 @@ class UpdateSocialsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"error:": "At least one social field must be provided."})
 
         return data
-
-
-class KickProjectMemberSerializer(serializers.Serializer):
-
-    members = serializers.ListField(child=serializers.IntegerField())
-
-    def validate_members(self, value):
-
-        if not value:
-            raise serializers.ValidationError("The members list cannot be empty.")
-        
-        for member_id in value:
-            if not Clerbie.objects.filter(id=member_id).exists():
-                raise serializers.ValidationError(f"User with ID {member_id} does not exist.")
-        
-        return value
-
-class LeaveFromProjectSerializer(serializers.Serializer):
-    
-    creator_to = serializers.CharField(required=False, allow_blank=True)
 
 
 class UpdateEducationSerializer(serializers.ModelSerializer):
@@ -559,87 +560,3 @@ class DeleteCertificateSerializer(serializers.ModelSerializer):
             'issued_at',
             'description'
         ]
-
-
-class UpdateJobSerializer(serializers.ModelSerializer):
-
-    '''Allows user to add or remove education'''
-
-    company = serializers.CharField()
-    position = serializers.CharField()
-    started_at = serializers.DateField()
-    ended_at = serializers.DateField(required=False)
-    description = serializers.CharField(required=False)
-
-    class Meta:
-        model = UserJobExperience
-        fields = [
-            'company',
-            'position',
-            'started_at',
-            'ended_at',
-            'description']
-
-    def validate_company(self, value):
-
-        '''Ensures that the company is either creater or fetched.'''
-
-        company_name = value.strip()
-        if not company_name:
-            raise serializers.ValidationError({"company": "company field can not be empty"})
-
-        company, created = Companies.objects.get_or_create(name=company_name)
-
-        return company
-
-    def validate(self, attrs):
-
-        for f in [f for f in self.fields if f != 'description' and f != 'ended_at']:
-            if f not in attrs:
-                raise serializers.ValidationError({"errors": f"{f}: 'This field is required.'"})
-        return attrs
-
-    def update(self, instance, validated_data):
-
-        if validated_data['started_at'] and validated_data['started_at'] > date.today():
-            raise serializers.ValidationError({"started_at": "You can't start to work in the future."})
-        
-        if 'ended_at' in validated_data.keys():
-            if validated_data['ended_at'] and validated_data['ended_at'] > date.today():
-                raise serializers.ValidationError({"ended_at": "You can't end your work in the future."})
-            if validated_data['ended_at'] and validated_data['ended_at'] < validated_data['started_at']:
-                raise serializers.ValidationError({"ended_at": "You can't end your work earlier than started."})
-
-        user_job = UserJobExperience.objects.filter(
-            user=instance,
-            company=validated_data.get('company')
-        ).first()
-
-        if user_job:
-            for attr, value in validated_data.items():
-                setattr(user_job, attr, value)
-            if not 'description' in validated_data.keys():
-                setattr(user_job, 'description', None)
-            if not 'ended_at' in validated_data.keys():
-                setattr(user_job, 'ended_at', None)
-            user_job.save()
-            return user_job
-
-        else:
-            new_user_job_relation = UserJobExperience.objects.create(
-                user=instance,
-                company=validated_data['company'],
-                position=validated_data['position'],
-                started_at=validated_data['started_at'],
-                ended_at=validated_data['ended_at'] if 'ended_at' in validated_data.keys() else None,
-                description=validated_data['description'] if 'description' in validated_data.keys() else None,
-            )
-            new_user_job_relation.save()
-            return new_user_job_relation
-
-
-class RemoveJobSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = UserJobExperience
-        fields = ['company', 'position']

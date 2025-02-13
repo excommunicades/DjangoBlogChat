@@ -5,14 +5,19 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from profile.serializers import (
-    ProjectSerializer,
+from profile.utils.serializers_utils import (
+    ProjectSerializer
+)
+
+from profile.serializers.projects_serializers import (
     CreateOfferSerializer,
     UpdateProjectSerializer,
     CreateProjectSerializer,
     OfferResponseSerializer,
     LeaveFromProjectSerializer,
+    KickProjectMemberSerializer,
 )
+
 from profile.utils.views_utils import (
     get_offer_by_id,
     get_project_by_id,
@@ -119,7 +124,6 @@ class ResponseOffer(generics.GenericAPIView):
         offer_response_data = get_offer_response_data(offer, user)
         return response_by_status(offer, user, offer_response_data)
 
-from profile.serializers import KickProjectMemberSerializer
 
 @extend_schema(tags=['Projects | Members'])
 class KickProjectMember(ProjectBaseView, generics.DestroyAPIView):

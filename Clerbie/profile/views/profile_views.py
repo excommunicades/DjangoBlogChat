@@ -9,8 +9,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.utils import timezone
 from django.db.models import Q
 
-from profile.serializers import (
-    FriendSerializer,
+
+from profile.serializers.profile_serializers import (
     ProjectSerializer,
     UpdateJobSerializer,
     RemoveJobSerializer,
@@ -24,7 +24,17 @@ from profile.serializers import (
     UpdateGeneralDataSerializer,
     UpdateCertificateSerializer,
     DeleteCertificateSerializer,
+
+
+
 )
+from profile.serializers.friends_serializers import (
+    FriendSerializer,
+)
+# from profile.serializers.projects_serializers import (
+
+# )
+
 
 from profile.utils.views_utils import get_user_by_request
 from profile.utils.views_permissions import (

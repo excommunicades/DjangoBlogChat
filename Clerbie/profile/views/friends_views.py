@@ -7,11 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.db.models import Q
 
-from profile.serializers import (
-    FriendSerializer,
+from profile.serializers.profile_serializers import (
     FriendSerializer,
     ProjectSerializer,
     FriendsOffersSerializer,
+)
+from profile.serializers.friends_serializers import (
     CreateFriendshipSerializer,
     FriendshipResponseSerializer,
 )
