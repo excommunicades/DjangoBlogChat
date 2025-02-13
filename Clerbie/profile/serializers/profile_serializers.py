@@ -53,6 +53,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
     gender = serializers.ChoiceField(choices=GENDER_CHOICES)
     birthday = serializers.DateField(allow_null=True)
     phone_number = serializers.CharField(allow_null=True)
+    business_email = serializers.CharField()
     country = serializers.ChoiceField(choices=COUNTRIES)
     time_zones = serializers.ChoiceField(choices=TIME_ZONES)
     status = serializers.ChoiceField(choices=ACCOUNT_STATUS_CHOICES)
@@ -66,7 +67,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
     friends = serializers.SerializerMethodField()
     education = serializers.SerializerMethodField()
     certificates = serializers.SerializerMethodField()
-    work_experience = serializers.SerializerMethodField()
+    jobs = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
     projects = serializers.SerializerMethodField()
 
@@ -85,6 +86,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             'gender',
             'birthday',
             'phone_number',
+            'business_email',
             'country',
             'time_zones',
             'status',
@@ -94,7 +96,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             'friends',
             'education',
             'certificates',
-            'work_experience',
+            'jobs',
             'reactions',
             'projects',
         ]
@@ -124,7 +126,6 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             "website": obj.website,
             "facebook": obj.facebook,
             "youtube": obj.youtube,
-            "business_email": obj.business_email
         }
 
     def get_friends(self, obj):
@@ -140,9 +141,9 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         certificates = Clerbie_certificates.objects.filter(user=obj)
         return CertificateSerializer(certificates, many=True).data
 
-    def get_work_experience(self, obj):
-        work_experience = UserJobExperience.objects.filter(user=obj).order_by('-started_at')
-        return JobExperienceSerializer(work_experience, many=True).data
+    def get_jobs(self, obj):
+        jobs = UserJobExperience.objects.filter(user=obj).order_by('-started_at')
+        return JobExperienceSerializer(jobs, many=True).data
 
     def get_reactions(self, obj):
         reactions = Clerbie_reactions.objects.filter(user=obj)
