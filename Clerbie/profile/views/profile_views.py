@@ -293,6 +293,7 @@ class RemoveJob(generics.DestroyAPIView):
 
         super().perform_destroy(instance)
 
+@extend_schema(tags=['Profile'])
 class CreateProfileReview(generics.CreateAPIView):
 
     queryset = Clerbie_reactions.objects.all()
@@ -325,7 +326,7 @@ class CreateProfileReview(generics.CreateAPIView):
 
         async_to_sync(send_offer_to_receiver)(profile.id, message)
 
-
+@extend_schema(tags=['Profile'])
 class DeleteProfileReview(generics.DestroyAPIView):
 
     queryset = Clerbie_reactions.objects.all()
