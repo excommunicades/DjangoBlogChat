@@ -501,7 +501,7 @@ class UpdateCertificateSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
     photo = serializers.ImageField(
         validators=[
-            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif']),
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'pdf']),
             validate_image_size
         ]
     )
