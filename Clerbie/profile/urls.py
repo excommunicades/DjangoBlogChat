@@ -12,8 +12,11 @@ from profile.views.profile_views import (
     RemoveEducation,
     DeleteCertificate,
     UpdateCertificates,
+    CreateProfileReview,
+    DeleteProfileReview,
     UpdateUserEducation,
     UpdateUserGeneralData,
+
 )
 from profile.views.projects_views import (
     CreateProject,
@@ -49,6 +52,8 @@ urlpatterns = [
     path('certificates/delete/<int:id>', DeleteCertificate.as_view(), name='delete-certificate'),
     path('jobs/update', UpdateUserJobs.as_view(), name='update-job'),
     path('jobs/remove/<int:id>', RemoveJob.as_view(), name='remove-job'),
+    path('<int:profile_id>/reviews/create', CreateProfileReview.as_view(), name='create-review'),
+    path('<int:profile_id>/reviews/<int:review_id>/delete', DeleteProfileReview.as_view(), name='delete-review'),
 
 
     # Friend Actions

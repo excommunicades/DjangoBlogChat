@@ -28,6 +28,7 @@ from authify.choices import (
     ACCOUNT_STATUS_CHOICES,
     PROGRAMMING_ROLES_CHOICES,
 )
+from profile.choices import REACTIONS
 from profile.utils.serializers_utils import (
     ProjectSerializer,
     ClerbieSerializer,
@@ -70,7 +71,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
     education = serializers.SerializerMethodField()
     certificates = serializers.SerializerMethodField()
     jobs = serializers.SerializerMethodField()
-    reactions = serializers.SerializerMethodField()
+    reviews = serializers.SerializerMethodField()
     projects = serializers.SerializerMethodField()
 
     class Meta:
@@ -99,7 +100,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             'education',
             'certificates',
             'jobs',
-            'reactions',
+            'reviews',
             'projects',
         ]
 
@@ -163,12 +164,12 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         jobs = UserJobExperience.objects.filter(user=obj).order_by('-started_at')
         return JobExperienceSerializer(jobs, many=True).data
 
-    def get_reactions(self, obj) -> List[Dict]:
+    def get_reviews(self, obj) -> List[Dict]:
 
         ''' Returns user's reactions in profile. '''
 
-        reactions = Clerbie_reactions.objects.filter(user=obj)
-        return ReactionSerializer(reactions, many=True).data
+        reviews = Clerbie_reactions.objects.filter(profile=obj)
+        return ReactionSerializer(reviews, many=True).data
 
     def get_projects(self, obj) -> List[Dict]:
 
@@ -577,3 +578,54 @@ class DeleteCertificateSerializer(serializers.ModelSerializer):
             'issued_at',
             'description'
         ]
+
+
+class CreateProfileReviewSerializer(serializers.ModelSerializer):
+
+    '''Creates | adds review from user to user profile'''
+
+    reaction = serializers.ChoiceField(choices=REACTIONS)
+
+    class Meta:
+        model = Clerbie_reactions
+        fields = ['id','reaction', 'review', 'user', 'profile']
+        read_only_fields = ['id', 'user', 'profile']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        profile = validated_data.get('profile')
+
+        if profile is None:
+            raise serializers.ValidationError({"error": "Profile does not exist."})
+
+        validated_data['user'] = user
+        validated_data['profile'] = profile
+
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+
+        representation = super().to_representation(instance)
+        
+        representation['id'] = instance.id
+        representation['user'] = instance.user.id
+        representation['profile'] = instance.profile.id
+        
+        return representation
+
+
+class DeleteProfileReviewSerializer(serializers.ModelSerializer):
+
+    '''Deletes review from user to user profile'''
+
+    class Meta:
+        model = Clerbie_reactions
+        fields = ['id', 'reaction', 'review']
+
+    def to_representation(self, instance):
+
+        """ Customize the response after deletion (optional) """
+
+        return {
+            "message": "Review has been successfully deleted."
+        }

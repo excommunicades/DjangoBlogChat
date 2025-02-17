@@ -42,3 +42,21 @@ class isNotBlockedUser(BasePermission):
 
         except BlackList.DoesNotExist:
             return True
+
+
+class isNotBlockedUserReview(BasePermission):
+
+    def has_permission(self, request, view):
+        profile = view.kwargs.get('profile_id')
+        is_blocked_user = request.user.id
+        try:
+            is_blocked = BlackList.objects.get(user__id=profile, blocked_user__id=is_blocked_user)
+            user_data = Clerbie.objects.get(id=is_blocked_user)
+            raise PermissionDenied({
+                            "user": {
+                                "username": user_data.nickname,
+                                "avatar": user_data.avatar},
+                            "errors": "You cannot write review to this user because you are blocked."})
+
+        except BlackList.DoesNotExist:
+            return True

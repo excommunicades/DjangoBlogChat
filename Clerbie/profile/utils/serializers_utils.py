@@ -68,9 +68,12 @@ class JobExperienceSerializer(serializers.ModelSerializer):
         fields = ['id','company','position', 'started_at','ended_at', 'description']
 
 class ReactionSerializer(serializers.ModelSerializer):
+
+    user = ClerbieSerializer()
+
     class Meta:
         model = Clerbie_reactions
-        fields = ['profile', 'reaction', 'review']
+        fields = ['user', 'reaction', 'review']
 
 class TechnologiesSerializer(serializers.ModelSerializer):
 

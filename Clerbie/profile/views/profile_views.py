@@ -2,13 +2,14 @@ from drf_spectacular.utils import extend_schema
 
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from asgiref.sync import async_to_sync
 
 from django.utils import timezone
 from django.db.models import Q
-
+from django.shortcuts import get_object_or_404
 
 from profile.serializers.profile_serializers import (
     ProjectSerializer,
@@ -24,8 +25,8 @@ from profile.serializers.profile_serializers import (
     UpdateGeneralDataSerializer,
     UpdateCertificateSerializer,
     DeleteCertificateSerializer,
-
-
+    CreateProfileReviewSerializer,
+    DeleteProfileReviewSerializer,
 
 )
 from profile.serializers.friends_serializers import (
@@ -36,9 +37,13 @@ from profile.serializers.friends_serializers import (
 # )
 
 
-from profile.utils.views_utils import get_user_by_request
+from profile.utils.views_utils import (
+    get_user_by_request,
+    send_offer_to_receiver,
+)
 from profile.utils.views_permissions import (
     isNotBlockedUser,
+    isNotBlockedUserReview,
     isOfferReceiverOrSender,
 )
 
@@ -48,6 +53,7 @@ from profile.models import (
     Clerbie_friends,
     Clerbie_education,
     UserJobExperience,
+    Clerbie_reactions,
     Clerbie_certificates,
 )
 
@@ -286,3 +292,62 @@ class RemoveJob(generics.DestroyAPIView):
             raise PermissionDenied("You do not have permission to delete this job experience.")
 
         super().perform_destroy(instance)
+
+class CreateProfileReview(generics.CreateAPIView):
+
+    queryset = Clerbie_reactions.objects.all()
+    serializer_class = CreateProfileReviewSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [isNotBlockedUserReview, IsAuthenticated]
+
+    def perform_create(self, serializer):
+        
+        user = self.request.user
+        profile = get_object_or_404(Clerbie, id=self.kwargs['profile_id'])
+        if user == profile:
+            raise ValidationError({"erorr": "You can not write review for yourself."})
+
+        serializer.save(user=user, profile=profile)
+        review = serializer.validated_data
+        message = {
+            'type': 'review_created',
+            'message': f'{user.username} wrote a review for you.',
+            'review': {
+                'review_owner': {
+                    'id': user.id,
+                    'username': user.username,
+                    'nickname': user.nickname,
+                },
+                'reaction': review.get('reaction', None),
+                'review': review.get('review', None)
+            }
+        }
+
+        async_to_sync(send_offer_to_receiver)(profile.id, message)
+
+
+class DeleteProfileReview(generics.DestroyAPIView):
+
+    queryset = Clerbie_reactions.objects.all()
+    serializer_class = DeleteProfileReviewSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'review_id'
+
+
+    def get_object(self):
+
+        profile = get_object_or_404(Clerbie, id=self.kwargs['profile_id'])
+        review = get_object_or_404(Clerbie_reactions, id=self.kwargs['review_id'], profile=profile)
+
+        return review
+
+    def perform_destroy(self, instance):
+
+        user = self.request.user
+        profile = get_object_or_404(Clerbie, id=self.kwargs['profile_id'])
+
+        if user == instance.user or user == profile:
+            instance.delete()
+        else:
+            raise PermissionDenied("You do not have permission to delete this review.")
