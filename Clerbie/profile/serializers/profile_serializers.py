@@ -318,12 +318,17 @@ class UpdateJobSerializer(serializers.ModelSerializer):
             new_user_job_relation.save()
             return new_user_job_relation
 
+    def to_representation(self, instance):
+
+        '''Returns the ID along with other fields'''
+
+        representation = super().to_representation(instance)
+        representation['id'] = instance.id
+        return representation
+
 
 class RemoveJobSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = UserJobExperience
-        fields = ['company', 'position']
+    pass
 
 
 class ProjectOfferSerializer(serializers.ModelSerializer):
@@ -479,13 +484,18 @@ class UpdateEducationSerializer(serializers.ModelSerializer):
             new_relation.save()
             return new_relation
 
+    def to_representation(self, instance):
+
+        '''Returns the ID along with other fields'''
+
+        representation = super().to_representation(instance)
+        representation['id'] = instance.id
+        return representation
+
 
 class RemoveEducationSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Clerbie_education
-        fields = ['university']
-
+    pass
 
 class UpdateCertificateSerializer(serializers.ModelSerializer):
 
@@ -503,7 +513,6 @@ class UpdateCertificateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clerbie_certificates
         fields = [
-            'id',
             'title',
             'photo',
             'organization',
@@ -547,7 +556,16 @@ class UpdateCertificateSerializer(serializers.ModelSerializer):
                 issued_at=validated_data['issued_at'],
             )
             new_certificate.save()
-            return new_relation
+            return new_certificate
+
+
+    def to_representation(self, instance):
+
+        '''Returns the ID along with other fields'''
+
+        representation = super().to_representation(instance)
+        representation['id'] = instance.id
+        return representation
 
 
 class DeleteCertificateSerializer(serializers.ModelSerializer):

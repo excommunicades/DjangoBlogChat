@@ -182,24 +182,21 @@ class RemoveEducation(generics.DestroyAPIView):
     serializer_class = RemoveEducationSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
+    lookup_field = 'id'
 
     def get_queryset(self):
         return Clerbie_education.objects.all()
 
-    def destroy(self, request, *args, **kwargs):
 
-        serializer = self.get_serializer(data=self.request.data)
+    def perform_destroy(self, instance):
 
-        if serializer.is_valid():
-            university = serializer.validated_data['university']
-            try:
-                education = Clerbie_education.objects.get(user=self.request.user, university=university)
-                education.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            except Clerbie_education.DoesNotExist:
-                return Response({"error": "Education record not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        '''Check if the eduication belongs to the current user before deleting.'''
+
+        if instance.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this education from profile.")
+
+        super().perform_destroy(instance)
+
 
 @extend_schema(tags=['Profile'])
 class UpdateCertificates(generics.UpdateAPIView):
@@ -226,20 +223,20 @@ class DeleteCertificate(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = DeleteCertificateSerializer
+    lookup_field = 'id'
 
-    def get_object(self):
+    def get_queryset(self):
+        return Clerbie_certificates.objects.all()
 
-        certificate_id = self.kwargs.get('id')
+    def perform_destroy(self, instance):
 
-        certificate = Clerbie_certificates.objects.filter(id=certificate_id).first()
+        '''Check if the certificate belongs to the current user before deleting.'''
 
-        if not certificate:
-            raise PermissionDenied("Certificate does not exist.")
-
-        if certificate.user != self.request.user:
+        if instance.user != self.request.user:
             raise PermissionDenied("You do not have permission to delete this certificate.")
 
-        return certificate
+        super().perform_destroy(instance)
+
 
 
 @extend_schema(tags=['Profile'])
@@ -272,22 +269,16 @@ class RemoveJob(generics.DestroyAPIView):
     serializer_class = RemoveJobSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
+    lookup_field = 'id'
 
     def get_queryset(self):
         return UserJobExperience.objects.all()
 
-    def destroy(self, request, *args, **kwargs):
+    def perform_destroy(self, instance):
 
-        serializer = self.get_serializer(data=self.request.data)
+        '''Check if the job experience belongs to the current user before deleting.'''
 
-        if serializer.is_valid():
-            company = serializer.validated_data['company']
-            position = serializer.validated_data['position']
-            try:
-                job = UserJobExperience.objects.get(user=self.request.user, company=company, position=position)
-                job.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            except UserJobExperience.DoesNotExist:
-                return Response({"error": "Job record not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if instance.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this job experience.")
+
+        super().perform_destroy(instance)

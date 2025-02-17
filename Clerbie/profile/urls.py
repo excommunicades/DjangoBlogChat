@@ -44,11 +44,11 @@ urlpatterns = [
     path('general/update', UpdateUserGeneralData.as_view(), name='update-general-data'),
     path('socials/update', UpdateSocials.as_view(), name='update-social-links'),
     path('education/update', UpdateUserEducation.as_view(), name='update-education'),
-    path('education/remove', RemoveEducation.as_view(), name='remove-education'),
+    path('education/remove/<int:id>', RemoveEducation.as_view(), name='remove-education'),
     path('certificates/update', UpdateCertificates.as_view(), name='update-add-certificate'),
     path('certificates/delete/<int:id>', DeleteCertificate.as_view(), name='delete-certificate'),
     path('jobs/update', UpdateUserJobs.as_view(), name='update-job'),
-    path('jobs/remove', RemoveJob.as_view(), name='remove-job'),
+    path('jobs/remove/<int:id>', RemoveJob.as_view(), name='remove-job'),
 
 
     # Friend Actions
