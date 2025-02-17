@@ -47,7 +47,7 @@ class EducationSerializer(serializers.ModelSerializer):
     university = UniversitySerializer()
     class Meta:
         model = Clerbie_education
-        fields = ['user', 'university', 'specialty', 'started_at', 'ended_at']
+        fields = ['id', 'user', 'university', 'specialty', 'started_at', 'ended_at']
 
 class CertificateSerializer(serializers.ModelSerializer):
     class Meta:
