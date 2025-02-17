@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from typing import Optional, Dict
 
 from django.db.models import Q
 
@@ -19,7 +20,7 @@ class UserListSerializer(serializers.ModelSerializer):
             'friend_info', 
         ]
 
-    def get_friend_info(self, obj):
+    def get_friend_info(self, obj) -> Optional[Dict[str, str]]:
         request_user = self.context.get('request').user
 
         if not request_user:
@@ -90,7 +91,7 @@ class BlockUserListSerializer(serializers.ModelSerializer):
             'blocked_user',
         ]
 
-    def get_blocked_user(self, obj):
+    def get_blocked_user(self, obj) -> Dict[str, str]:
         return {
             'id': obj.blocked_user.id,
             'username': obj.blocked_user.username,

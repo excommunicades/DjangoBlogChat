@@ -53,11 +53,12 @@ class CreateProject(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-@extend_schema(tags=['Projects'])
+@extend_schema(tags=['Projects'], methods=['PATCH'])
 class UpdateProject(ProjectBaseView, generics.UpdateAPIView):
 
     queryset = Projects.objects.prefetch_related('technologies')
     serializer_class = UpdateProjectSerializer
+    http_method_names = ['patch']
 
 @extend_schema(tags=['Projects'])
 class DeleteProject(ProjectBaseView, generics.DestroyAPIView):

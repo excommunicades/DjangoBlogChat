@@ -1,4 +1,6 @@
 from datetime import date
+from typing import List, Dict
+
 from rest_framework import serializers
 
 from django.core.validators import FileExtensionValidator
@@ -115,7 +117,10 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
 
         return representation
 
-    def get_socials(self, obj):
+    def get_socials(self, obj) -> Dict[str, str]:
+        
+        ''' Returns user's socials in profile. '''
+
         return {
             "telegram": obj.telegram,
             "linkedin": obj.linkedin,
@@ -128,28 +133,47 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
             "youtube": obj.youtube,
         }
 
-    def get_friends(self, obj):
+    def get_friends(self, obj) -> List[Dict]:
+
+        ''' Returns user's friends in profile. '''
+
         relations = Clerbie_friends.objects.filter(Q(user1=obj) | Q(user2=obj))
         friends = [r.user1 if r.user2 == obj else r.user2 for r in relations]
+
         return ClerbieSerializer(friends, many=True).data
 
-    def get_education(self, obj):
+    def get_education(self, obj) -> List[Dict]:
+
+        ''' Returns user's educations in profile. '''
+
         education = Clerbie_education.objects.filter(user=obj)
         return EducationSerializer(education, many=True).data
 
-    def get_certificates(self, obj):
+    def get_certificates(self, obj) -> List[Dict]:
+
+        ''' Returns user's certificates in profile. '''
+
         certificates = Clerbie_certificates.objects.filter(user=obj)
         return CertificateSerializer(certificates, many=True).data
 
-    def get_jobs(self, obj):
+    def get_jobs(self, obj) -> List[Dict]:
+
+        ''' Returns user's jobs in profile. '''
+
         jobs = UserJobExperience.objects.filter(user=obj).order_by('-started_at')
         return JobExperienceSerializer(jobs, many=True).data
 
-    def get_reactions(self, obj):
+    def get_reactions(self, obj) -> List[Dict]:
+
+        ''' Returns user's reactions in profile. '''
+
         reactions = Clerbie_reactions.objects.filter(user=obj)
         return ReactionSerializer(reactions, many=True).data
 
-    def get_projects(self, obj):
+    def get_projects(self, obj) -> List[Dict]:
+
+        ''' Returns user's projects in profile. '''
+
         projects = Projects.objects.filter(users=obj)
         return ProjectSerializer(projects, many=True).data
 
@@ -199,32 +223,6 @@ class UpdateGeneralDataSerializer(serializers.ModelSerializer):
         technologies = instance.technologies.all()
         representation['technologies'] = [tech.name for tech in technologies]
 
-        return representation
-
-
-class FriendSerializer(serializers.ModelSerializer):
-
-    id = serializers.IntegerField(source='user2.id')
-    nickname = serializers.CharField(source='user2.nickname')
-    username = serializers.CharField(source='user2.username')
-    avatar = serializers.URLField(source='user2.avatar')
-    offer_code = serializers.CharField(required=False)
-
-    class Meta:
-        model = Clerbie_friends
-        fields = ['id', 'nickname', 'username', 'avatar', 'offer_code']
-
-    def to_representation(self, instance):
-
-        request_user = self.context.get('request_user')
-        representation = super().to_representation(instance)
-
-        if request_user != instance.user1:
-            avatar = instance.user1.avatar.url if instance.user1.avatar else None
-            representation['id'] = instance.user1.id
-            representation['nickname'] = instance.user1.nickname
-            representation['username'] = instance.user1.username
-            representation['avatar'] = avatar
         return representation
 
 

@@ -118,20 +118,21 @@ class DeleteOffer(generics.DestroyAPIView):
         return Offers.objects.filter(id=self.kwargs['pk'])
 
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Profile'], methods=['PATCH'])
 class UpdateUserGeneralData(generics.UpdateAPIView):
 
     queryset = Clerbie.objects.all()
     serializer_class = UpdateGeneralDataSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    http_method_names = ['patch']
     lookup_field = 'pk'
 
     def get_object(self):
         return Clerbie.objects.prefetch_related('technologies').get(pk=self.request.user.pk)
 
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Profile'], methods=['PATCH'])
 class UpdateSocials(generics.UpdateAPIView):
 
     '''CRUD Operations for Socials in profile'''
@@ -140,6 +141,7 @@ class UpdateSocials(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = UpdateSocialsSerializer
+    http_method_names = ['patch']
 
     def get_object(self):
 
@@ -152,7 +154,7 @@ class UpdateSocials(generics.UpdateAPIView):
         
         return user_profile
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Profile'], methods=['PATCH'])
 class UpdateUserEducation(generics.UpdateAPIView):
 
     '''Endpoint for add|remove education to user profile '''
@@ -161,6 +163,7 @@ class UpdateUserEducation(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = UpdateEducationSerializer
+    http_method_names = ['patch']
 
 
     def get_object(self):
@@ -198,7 +201,7 @@ class RemoveEducation(generics.DestroyAPIView):
         super().perform_destroy(instance)
 
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Profile'], methods=['PATCH'])
 class UpdateCertificates(generics.UpdateAPIView):
 
     '''Updates or creates certificates at user profile'''
@@ -207,6 +210,7 @@ class UpdateCertificates(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = UpdateCertificateSerializer
+    http_method_names = ['patch']
 
     def get_object(self):
 
@@ -239,7 +243,7 @@ class DeleteCertificate(generics.DestroyAPIView):
 
 
 
-@extend_schema(tags=['Profile'])
+@extend_schema(tags=['Profile'], methods=['PATCH'])
 class UpdateUserJobs(generics.UpdateAPIView):
 
     '''Endpoint for add|remove education to user profile '''
@@ -248,7 +252,7 @@ class UpdateUserJobs(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = UpdateJobSerializer
-
+    http_method_names = ['patch']
 
     def get_object(self):
 

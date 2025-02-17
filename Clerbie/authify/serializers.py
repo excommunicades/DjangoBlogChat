@@ -1,4 +1,5 @@
 import re
+from drf_spectacular.utils import extend_schema_field
 
 from rest_framework import serializers, status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
