@@ -15,7 +15,7 @@ from profile.models import (
     Technologies,
     Clerbie_friends,
     Clerbie_education,
-    Clerbie_reactions,
+    Clerbie_reviews,
     UserJobExperience,
     Clerbie_certificates,
 )
@@ -168,7 +168,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
 
         ''' Returns user's reactions in profile. '''
 
-        reviews = Clerbie_reactions.objects.filter(profile=obj)
+        reviews = Clerbie_reviews.objects.filter(profile=obj)
         return ReactionSerializer(reviews, many=True).data
 
     def get_projects(self, obj) -> List[Dict]:
@@ -585,21 +585,38 @@ class CreateProfileReviewSerializer(serializers.ModelSerializer):
     '''Creates | adds review from user to user profile'''
 
     reaction = serializers.ChoiceField(choices=REACTIONS)
+    project = serializers.PrimaryKeyRelatedField(queryset=Projects.objects.all(), required=False)
+    university = serializers.PrimaryKeyRelatedField(queryset=University.objects.all(), required=False)
+    company = serializers.PrimaryKeyRelatedField(queryset=Companies.objects.all(), required=False)
 
     class Meta:
-        model = Clerbie_reactions
-        fields = ['id','reaction', 'review', 'user', 'profile']
+        model = Clerbie_reviews
+        fields = ['id','reaction', 'review', 'user', 'profile', 'profile', 'project', 'university', 'company']
         read_only_fields = ['id', 'user', 'profile']
 
     def create(self, validated_data):
+
         user = self.context['request'].user
         profile = validated_data.get('profile')
+
+        if Clerbie_reviews.objects.filter(user=user, profile=profile).exists():
+            raise serializers.ValidationError({"error": "You can write only one review to one user."})
 
         if profile is None:
             raise serializers.ValidationError({"error": "Profile does not exist."})
 
         validated_data['user'] = user
         validated_data['profile'] = profile
+
+        match validated_data['reaction']:
+            case 'like':
+                user = Clerbie.objects.get(id=profile.id)
+                user.behavior_points += 5
+            case 'dislike':
+                user = Clerbie.objects.get(id=profile.id)
+                user.behavior_points -= 5
+        
+        user.save()
 
         return super().create(validated_data)
 
@@ -611,15 +628,30 @@ class CreateProfileReviewSerializer(serializers.ModelSerializer):
         representation['user'] = instance.user.id
         representation['profile'] = instance.profile.id
         
+        if instance.project:
+            representation['project'] = {
+                        "id": instance.project.id,
+                        "name": instance.project.name,
+                    }
+        if instance.university:
+            representation['university'] = {
+                        "id": instance.university.id,
+                        "name": instance.university.name,
+                    }
+        if instance.company:
+            representation['company'] = {
+                    "id": instance.company.id,
+                    "name": instance.company.name,
+                }
+        
         return representation
-
 
 class DeleteProfileReviewSerializer(serializers.ModelSerializer):
 
     '''Deletes review from user to user profile'''
 
     class Meta:
-        model = Clerbie_reactions
+        model = Clerbie_reviews
         fields = ['id', 'reaction', 'review']
 
     def to_representation(self, instance):

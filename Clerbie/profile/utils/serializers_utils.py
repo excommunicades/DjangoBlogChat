@@ -14,7 +14,7 @@ from profile.models import (
     Technologies,
     Clerbie_friends,
     Clerbie_education,
-    Clerbie_reactions,
+    Clerbie_reviews,
     UserJobExperience,
     Clerbie_certificates,
 )
@@ -72,7 +72,7 @@ class ReactionSerializer(serializers.ModelSerializer):
     user = ClerbieSerializer()
 
     class Meta:
-        model = Clerbie_reactions
+        model = Clerbie_reviews
         fields = ['user', 'reaction', 'review']
 
 class TechnologiesSerializer(serializers.ModelSerializer):

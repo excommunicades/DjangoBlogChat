@@ -26,15 +26,6 @@ def image_upload_function(instance, filename):
 
     return os.path.join(folder_name, safe_title, filename)
 
-class Clerbie_reactions(models.Model):
-
-    user = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='user_reactions')
-    profile = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='profile_reactions')
-    reaction = models.CharField(choices=REACTIONS)
-    review = models.TextField(max_length=7000, blank=True, null=True)
-
-    class Meta:
-        db_table = 'UserReactions'
 class Clerbie_friends(models.Model):
 
     user1 = models.ForeignKey(Clerbie, related_name='friends', on_delete=models.CASCADE)
@@ -170,3 +161,18 @@ class InboxMessage(models.Model):
 
     def __str__(self):
         return f"Message for {self.user.nickname}"
+
+
+class Clerbie_reviews(models.Model):
+
+    user = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='user_reactions')
+    profile = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='profile_reactions')
+    reaction = models.CharField(choices=REACTIONS)
+    review = models.TextField(max_length=7000, blank=True, null=True)
+
+    project = models.ForeignKey(Projects, null=True, blank=True, on_delete=models.SET_NULL)
+    university = models.ForeignKey(University, null=True, blank=True, on_delete=models.SET_NULL)
+    company = models.ForeignKey(Companies, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        db_table = 'UserReviews'

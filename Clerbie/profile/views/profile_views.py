@@ -53,7 +53,7 @@ from profile.models import (
     Clerbie_friends,
     Clerbie_education,
     UserJobExperience,
-    Clerbie_reactions,
+    Clerbie_reviews,
     Clerbie_certificates,
 )
 
@@ -296,7 +296,7 @@ class RemoveJob(generics.DestroyAPIView):
 @extend_schema(tags=['Profile'])
 class CreateProfileReview(generics.CreateAPIView):
 
-    queryset = Clerbie_reactions.objects.all()
+    queryset = Clerbie_reviews.objects.all()
     serializer_class = CreateProfileReviewSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [isNotBlockedUserReview, IsAuthenticated]
@@ -329,7 +329,7 @@ class CreateProfileReview(generics.CreateAPIView):
 @extend_schema(tags=['Profile'])
 class DeleteProfileReview(generics.DestroyAPIView):
 
-    queryset = Clerbie_reactions.objects.all()
+    queryset = Clerbie_reviews.objects.all()
     serializer_class = DeleteProfileReviewSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -339,7 +339,7 @@ class DeleteProfileReview(generics.DestroyAPIView):
     def get_object(self):
 
         profile = get_object_or_404(Clerbie, id=self.kwargs['profile_id'])
-        review = get_object_or_404(Clerbie_reactions, id=self.kwargs['review_id'], profile=profile)
+        review = get_object_or_404(Clerbie_reviews, id=self.kwargs['review_id'], profile=profile)
 
         return review
 
@@ -348,7 +348,15 @@ class DeleteProfileReview(generics.DestroyAPIView):
         user = self.request.user
         profile = get_object_or_404(Clerbie, id=self.kwargs['profile_id'])
 
-        if user == instance.user or user == profile:
+        if user == instance.user: #  or user == profile - владелец тоже может удалять
+            match instance.reaction:
+                case 'like':
+                    profile_user = Clerbie.objects.get(id=profile.id)
+                    profile_user.behavior_points -= 5
+                case 'dislike':
+                    profile_user = Clerbie.objects.get(id=profile.id)
+                    profile_user.behavior_points += 5
+            profile_user.save()
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this review.")
