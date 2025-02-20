@@ -11,6 +11,7 @@ from profile.models import (
     Offers,
     Projects,
     Companies,
+    JobTitles,
     University,
     Technologies,
     Clerbie_friends,
@@ -34,6 +35,7 @@ from profile.utils.serializers_utils import (
     ClerbieSerializer,
     ReactionSerializer,
     validate_image_size,
+    JobTitlesSerializer,
     EducationSerializer,
     CertificateSerializer,
     TechnologiesSerializer,
@@ -60,7 +62,6 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
     country = serializers.ChoiceField(choices=COUNTRIES)
     time_zones = serializers.ChoiceField(choices=TIME_ZONES)
     status = serializers.ChoiceField(choices=ACCOUNT_STATUS_CHOICES)
-    job_title = serializers.ChoiceField(choices=PROGRAMMING_ROLES_CHOICES, allow_null=True)
     two_factor_method = serializers.ChoiceField(choices=[('enabled', 'Enabled'), ('disabled', 'Disabled')])
 
     # Socials
@@ -73,6 +74,7 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
     jobs = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     projects = serializers.SerializerMethodField()
+    job_title = serializers.SerializerMethodField()
 
     class Meta:
         model = Clerbie
@@ -178,6 +180,13 @@ class GetUserProfileSerializer(serializers.ModelSerializer):
         projects = Projects.objects.filter(users=obj)
         return ProjectSerializer(projects, many=True).data
 
+    def get_job_title(self, obj) -> List[Dict]:
+
+        ''' Returns user's job title in profile. '''
+        try:
+            job_title = JobTitles.objects.get(id=obj.job_title.id)
+        except:
+            return None
 
 class UpdateGeneralDataSerializer(serializers.ModelSerializer):
 
@@ -661,3 +670,43 @@ class DeleteProfileReviewSerializer(serializers.ModelSerializer):
         return {
             "message": "Review has been successfully deleted."
         }
+
+
+
+class UpdateJobTitleSerializer(serializers.ModelSerializer):
+
+    '''Allows user to add or remove education'''
+
+    job_title = serializers.CharField()
+    class Meta:
+        model = Clerbie
+        fields = ['job_title']
+
+    def validate_job_title(self, value):
+
+        '''Ensures that the university is either creater or fetched.'''
+
+        job_title_name = value.strip()
+        job_title, created = JobTitles.objects.get_or_create(title=job_title_name)
+        value = job_title
+
+        return value
+
+    def update(self, instance, validated_data):
+
+        if 'job_title' not in validated_data.keys():
+            raise serializers.ValidationError({"erorrs": {"job_title": "job_title field can not be empty"}})
+
+        instance.job_title = validated_data['job_title']
+        instance.save()
+
+        return instance
+
+    def to_representation(self, instance):
+
+        '''Returns the ID along with other fields'''
+
+        representation = super().to_representation(instance)
+        representation['job_title'] = instance.job_title.title
+        representation['id'] = instance.job_title.id
+        return representation

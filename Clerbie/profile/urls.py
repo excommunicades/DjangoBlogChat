@@ -9,6 +9,8 @@ from profile.views.profile_views import (
     DeleteOffer,
     UpdateSocials,
     UpdateUserJobs,
+    UpdateJobTitle,
+    RemoveJobTitle,
     RemoveEducation,
     DeleteCertificate,
     UpdateCertificates,
@@ -52,6 +54,8 @@ urlpatterns = [
     path('certificates/delete/<int:id>', DeleteCertificate.as_view(), name='delete-certificate'),
     path('jobs/update', UpdateUserJobs.as_view(), name='update-job'),
     path('jobs/remove/<int:id>', RemoveJob.as_view(), name='remove-job'),
+    path('jobs/titles/update', UpdateJobTitle.as_view(), name='update-job-title'),
+    path('jobs/titles/remove', RemoveJobTitle.as_view(), name='remove-job-title'),
     path('<int:profile_id>/reviews/create', CreateProfileReview.as_view(), name='create-review'),
     path('<int:profile_id>/reviews/<int:review_id>/delete', DeleteProfileReview.as_view(), name='delete-review'),
 

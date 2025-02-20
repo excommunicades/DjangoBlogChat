@@ -31,9 +31,8 @@ from profile.utils.views_permissions import (
     isOfferReceiverOrSender,
     isNotBlockedUser,
 )
-
+from authify.models import Clerbie
 from profile.models import (
-    Clerbie,
     Projects,
     Offers,
 )

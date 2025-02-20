@@ -9,6 +9,7 @@ from profile.models import (
     Offers,
     Projects,
     Companies,
+    JobTitles,
     University,
     InboxMessage,
     Technologies,
@@ -19,11 +20,6 @@ from profile.models import (
     Clerbie_certificates,
 )
 
-
-class ClerbieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Clerbie
-        fields = ['id', 'nickname', 'avatar'] # 'email'
 
 class FriendOfferSerializer(serializers.ModelSerializer):
     class Meta:
@@ -66,6 +62,19 @@ class JobExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserJobExperience
         fields = ['id','company','position', 'started_at','ended_at', 'description']
+
+
+class JobTitlesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = JobTitles
+        fields = ['id', 'title']
+
+class ClerbieSerializer(serializers.ModelSerializer):
+    job_title = JobTitlesSerializer()
+    class Meta:
+        model = Clerbie
+        fields = ['id', 'nickname', 'avatar', 'job_title'] # 'email'
 
 class ReactionSerializer(serializers.ModelSerializer):
 

@@ -33,6 +33,7 @@ urlpatterns = [
     path('auth/', include('authify.urls')),
     path('profile/', include('profile.urls')),
     path('users/', include('users.urls')),
+    path('teamup/', include('teamup.urls')),
 
     # swagger
     path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

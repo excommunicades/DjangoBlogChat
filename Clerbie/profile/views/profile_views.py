@@ -20,6 +20,7 @@ from profile.serializers.profile_serializers import (
     UpdateSocialsSerializer,
     FriendsOffersSerializer,
     GetUserProfileSerializer,
+    UpdateJobTitleSerializer,
     UpdateEducationSerializer,
     RemoveEducationSerializer,
     UpdateGeneralDataSerializer,
@@ -50,6 +51,7 @@ from profile.utils.views_permissions import (
 from authify.models import Clerbie
 from profile.models import (
     Offers,
+    JobTitles,
     Clerbie_friends,
     Clerbie_education,
     UserJobExperience,
@@ -360,3 +362,48 @@ class DeleteProfileReview(generics.DestroyAPIView):
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this review.")
+
+@extend_schema(tags=['Profile'])
+class UpdateJobTitle(generics.UpdateAPIView):
+
+    '''Endpoint for add|remove job title to user profile '''
+
+    queryset = JobTitles.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = UpdateJobTitleSerializer
+    http_method_names = ['patch']
+
+
+    def get_object(self):
+
+        """Ensures that the user can only update their own job title in profile"""
+
+        user = self.request.user
+
+        if not user:
+            raise PermissionDenied("User does not exist.")
+
+        return user
+
+@extend_schema(tags=['Profile'])
+class RemoveJobTitle(generics.DestroyAPIView):
+
+    '''Removes job title from user's profile'''
+
+    queryset = Clerbie.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def perform_destroy(self, instance):
+
+        instance.job_title = None
+        instance.save()
+
+    def delete(self, request, *args, **kwargs):
+
+        instance = request.user
+
+        self.perform_destroy(instance)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

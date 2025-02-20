@@ -5,7 +5,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from django.db import models
 
-from authify.models import Clerbie
 from profile.choices import (
     REACTIONS,
     STATUS_CHOICES,
@@ -28,8 +27,8 @@ def image_upload_function(instance, filename):
 
 class Clerbie_friends(models.Model):
 
-    user1 = models.ForeignKey(Clerbie, related_name='friends', on_delete=models.CASCADE)
-    user2 = models.ForeignKey(Clerbie, related_name='friends_with', on_delete=models.CASCADE)
+    user1 = models.ForeignKey('authify.Clerbie', related_name='friends', on_delete=models.CASCADE)
+    user2 = models.ForeignKey('authify.Clerbie', related_name='friends_with', on_delete=models.CASCADE)
     offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     description = models.TextField(max_length=7000, null=True, blank=True)
@@ -56,9 +55,9 @@ class University(models.Model):
     def __str__(self):
         return self.name
     class Meta:
-        db_table = 'Educations'
+        db_table = 'Universities'
 class Clerbie_education(models.Model):
-    user = models.ForeignKey(Clerbie ,related_name='education_users', on_delete=models.CASCADE)
+    user = models.ForeignKey('authify.Clerbie' ,related_name='education_users', on_delete=models.CASCADE)
     university = models.ForeignKey(University, related_name='universities',max_length=50, blank=False, null=True, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=50, blank=False, null=True)
     started_at = models.DateField(blank=False, null=True)
@@ -94,8 +93,8 @@ class Projects(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=7000, blank=True, null=True)
     technologies = models.ManyToManyField(Technologies, blank=True)
-    users = models.ManyToManyField(Clerbie, related_name='projects')
-    creator = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="created_project")
+    users = models.ManyToManyField('authify.Clerbie', related_name='projects')
+    creator = models.ForeignKey('authify.Clerbie', on_delete=models.CASCADE, related_name="created_project")
 
     def __str__(self):
         return self.name
@@ -117,7 +116,7 @@ class Companies(models.Model):
 
 class UserJobExperience(models.Model):
 
-    user = models.ForeignKey(Clerbie, related_name='work_users', on_delete=models.CASCADE)
+    user = models.ForeignKey('authify.Clerbie', related_name='work_users', on_delete=models.CASCADE)
     company = models.ForeignKey(Companies, related_name='users_work', on_delete=models.CASCADE, null=True, blank=False)
     position = models.CharField(max_length=100, blank=False, null=True)
     started_at = models.DateField(null=True, blank=True)
@@ -130,14 +129,14 @@ class UserJobExperience(models.Model):
         return "Current job"
 
     class Meta:
-        db_table = 'UserWorks'
+        db_table = 'UserJobs'
 
 class Offers(models.Model):
 
     offer_type = models.CharField(max_length=7, choices=[('request', 'Request'), ('invite', 'Invite')], default='request')
     project = models.ForeignKey(Projects, on_delete=models.CASCADE)
-    sender = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="sent_offers")
-    receiver = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name="received_offers")
+    sender = models.ForeignKey('authify.Clerbie', on_delete=models.CASCADE, related_name="sent_offers")
+    receiver = models.ForeignKey('authify.Clerbie', on_delete=models.CASCADE, related_name="received_offers")
     offer_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('declined', 'Declined')], default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -153,7 +152,7 @@ class Offers(models.Model):
 
 
 class InboxMessage(models.Model):
-    user = models.ForeignKey(Clerbie, on_delete=models.CASCADE)
+    user = models.ForeignKey('authify.Clerbie', on_delete=models.CASCADE)
     offer = models.ForeignKey(Offers, on_delete=models.CASCADE)
     message = models.TextField()
     read = models.BooleanField(default=False)
@@ -162,11 +161,13 @@ class InboxMessage(models.Model):
     def __str__(self):
         return f"Message for {self.user.nickname}"
 
+    class Meta:
+        db_table = 'InboxMessages'
 
 class Clerbie_reviews(models.Model):
 
-    user = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='user_reactions')
-    profile = models.ForeignKey(Clerbie, on_delete=models.CASCADE, related_name='profile_reactions')
+    user = models.ForeignKey('authify.Clerbie', on_delete=models.CASCADE, related_name='user_reactions')
+    profile = models.ForeignKey('authify.Clerbie', on_delete=models.CASCADE, related_name='profile_reactions')
     reaction = models.CharField(choices=REACTIONS)
     review = models.TextField(max_length=7000, blank=True, null=True)
 
@@ -176,3 +177,12 @@ class Clerbie_reviews(models.Model):
 
     class Meta:
         db_table = 'UserReviews'
+
+
+class JobTitles(models.Model):
+
+    title = models.CharField(max_length=100, blank=False, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'JobTitles'

@@ -5,7 +5,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-
 from authify.choices import (
     COUNTRIES,
     TIME_ZONES,
@@ -14,6 +13,7 @@ from authify.choices import (
     ACCOUNT_STATUS_CHOICES,
     PROGRAMMING_ROLES_CHOICES,
 )
+from profile.models import JobTitles
 
 def image_upload_function(instance, filename):
 
@@ -114,13 +114,7 @@ class Clerbie(AbstractBaseUser, PermissionsMixin):
 
     business_email = models.EmailField(max_length=100, blank=True,null=True)
 
-    job_title = models.CharField(
-        default='None',
-        max_length=40,
-        choices=PROGRAMMING_ROLES_CHOICES,
-        blank=True,
-        null=True,
-    )
+    job_title = models.ForeignKey(JobTitles, on_delete=models.SET_NULL, null=True, blank=True)
 
     two_factor_method = models.CharField(
         default='disabled',

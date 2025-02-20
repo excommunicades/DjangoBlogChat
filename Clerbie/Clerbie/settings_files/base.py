@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'authify',
     'profile',
     'chat',
+    'teamup',
 ]
 
 MIDDLEWARE = [
