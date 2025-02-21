@@ -16,12 +16,16 @@ from teamup.serializers import (
 @extend_schema(tags=['Announcements'])
 class CreateAnnouncement(generics.CreateAPIView):
 
+    '''Create Announcement of project (if u are creator of project)'''
+
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = CreateAnnouncementSerializer
 
 @extend_schema(tags=['Announcements'])
 class UpdateAnnouncement(generics.UpdateAPIView):
+
+    '''Update announcement of project'''
 
     queryset = Announcement.objects.all()
     authentication_classes = [JWTAuthentication]
@@ -32,6 +36,8 @@ class UpdateAnnouncement(generics.UpdateAPIView):
 @extend_schema(tags=['Announcements'])
 class GetAnnouncementList(generics.ListAPIView):
 
+    '''Return List of announcements'''
+
     queryset = Announcement.objects.all()
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -41,6 +47,8 @@ class GetAnnouncementList(generics.ListAPIView):
 @extend_schema(tags=['Announcements'])
 class GetAnnouncement(generics.RetrieveAPIView):
 
+    '''Return User's additional information about announcement of project'''
+
     queryset = Announcement.objects.all()
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -49,6 +57,8 @@ class GetAnnouncement(generics.RetrieveAPIView):
 
 @extend_schema(tags=['Announcements'])
 class DeleteAnnouncement(generics.DestroyAPIView):
+
+    '''Delete User's announcement for project'''
 
     queryset = Announcement.objects.all()
     authentication_classes = [JWTAuthentication]

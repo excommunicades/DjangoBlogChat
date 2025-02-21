@@ -6,6 +6,8 @@ from profile.utils.serializers_utils import ClerbieSerializer
 
 class CreateAnnouncementSerializer(serializers.ModelSerializer):
 
+    '''Serialize data to db records from records for announcement creation'''
+
     job_titles = serializers.ListField(child=serializers.CharField(), required=True)
     technologies = serializers.ListField(child=serializers.CharField(), required=False)
     project = serializers.PrimaryKeyRelatedField(queryset=Projects.objects.all(), required=True)
@@ -75,6 +77,8 @@ class CreateAnnouncementSerializer(serializers.ModelSerializer):
 
 
 class UpdateAnnouncementSerializer(serializers.ModelSerializer):
+
+    '''Serialize data for db records from fields for update'''
 
     job_titles = serializers.ListField(child=serializers.CharField(), required=False)
     technologies = serializers.ListField(child=serializers.CharField(), required=False)
@@ -146,6 +150,8 @@ class UpdateAnnouncementSerializer(serializers.ModelSerializer):
 
 
 class GetAnnouncementListSerializer(serializers.ModelSerializer):
+
+    '''Serialize list of announcemnt data'''
     
     class Meta:
         model = Announcement
@@ -183,6 +189,8 @@ class GetAnnouncementListSerializer(serializers.ModelSerializer):
 
 class GetAnnouncementSerializer(serializers.ModelSerializer):
     
+    '''Serialize data from db (announcemnet fields)'''
+
     class Meta:
         model = Announcement
         fields = [
