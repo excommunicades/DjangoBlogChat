@@ -3,9 +3,11 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from teamup.models import Announcement
+from teamup.filters import AnnouncementFilter
 from teamup.serializers import (
     CreateAnnouncementSerializer,
     UpdateAnnouncementSerializer,
@@ -42,7 +44,8 @@ class GetAnnouncementList(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = GetAnnouncementListSerializer
-
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = AnnouncementFilter
 
 @extend_schema(tags=['Announcements'])
 class GetAnnouncement(generics.RetrieveAPIView):
