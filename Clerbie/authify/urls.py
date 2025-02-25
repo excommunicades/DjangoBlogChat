@@ -12,6 +12,8 @@ from authify.views import (
     LogoutUser,
     GetUserData,
     RegisterUser,
+    ResetAccount,
+    DeleteAccount,
     ChangePassword,
     RegisterConfirm,
     PasswordRecovery,
@@ -27,6 +29,10 @@ urlpatterns = [
     path('login', LoginUser.as_view(), name="user_authorization"),
     path('logout', LogoutUser.as_view(), name='user_logout'),
     path('user-data', GetUserData.as_view(), name='user_data'),
+
+    #account functionallity
+    path('account/delete', DeleteAccount.as_view(), name='delete-account'),
+    path('account/reset', ResetAccount.as_view(), name='reset-account'),
     
     #register actions
     path('register-confirm', RegisterConfirm.as_view(), name="user_registration_confirm"),

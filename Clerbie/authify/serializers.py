@@ -288,6 +288,16 @@ class ChangePasswordSerializer(serializers.Serializer):
         return user
 
 
+class AccountSerializer(serializers.ModelSerializer):
+
+
+    '''Deletes user from request'''
+
+    class Meta:
+        model = Clerbie
+        fields = '__all__'
+
+
 # TODO: BindEmail system
 
 # class BingEmailSerializer(serializers.Serializer):

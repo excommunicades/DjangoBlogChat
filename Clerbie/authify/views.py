@@ -1,3 +1,4 @@
+import uuid
 from drf_spectacular.utils import extend_schema
 
 from rest_framework.decorators import api_view
@@ -9,11 +10,13 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 
 from authify.serializers import (
     GetUserDataSerializer,
     RegistrationSerializer,
     AuthorizationSerializer,
+    AccountSerializer,
     LogoutResponseSerializer,
     ChangePasswordSerializer,
     PasswordRecoverySerializer,
@@ -357,3 +360,104 @@ class GetUserData(generics.GenericAPIView):
         serializer = self.get_serializer(user, context={'request_user': request.user})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DeleteAccount(generics.DestroyAPIView):
+
+    """
+    API endpoint that allows the authenticated user to delete their own account.
+    """
+
+    queryset = Clerbie.objects.all()
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = AccountSerializer
+
+    def get_object(self):
+        return self.request.user
+
+    def perform_destroy(self, instance):
+        """
+        Perform the deletion.
+        """
+        instance.delete()
+
+    def delete(self, request, *args, **kwargs):
+
+        self.perform_destroy(self.get_object())
+
+        response = Response({"message": "Your account has been deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie(
+                        'refreshToken',
+                        path='/',
+                        samesite='Lax')
+        response.delete_cookie(
+                        'access_token',
+                        path='/',
+                        samesite='Strict')
+        
+        return response
+
+class FreezeAccount(generics.UpdateAPIView):
+    # TODO: Implement Freeze functionallity
+    pass
+
+class ResetAccount(generics.UpdateAPIView):
+    """
+    API endpoint for deleting the user and recreating the account with the same email, 
+    nickname, password, and role, avoiding unique constraint violation.
+    """
+
+    queryset = Clerbie.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = AccountSerializer
+    http_method_names = ['put']
+
+    def get_object(self):
+        return self.request.user
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        # Store the user information that you want to keep intact
+        username = user.username
+        nickname = user.nickname
+        email = user.email
+        password = user.password
+        role = user.role
+        user_id = user.id
+
+        # Temporarily change the nickname to avoid unique constraint violation
+        user.nickname = 'deleted'
+        user.email = 'deleted@gmail.com'
+        user.save()
+        user.delete()
+
+        new_user = Clerbie.objects.create_user(
+            id=user_id, username=username, nickname=nickname, email=email, password=password, role=role
+        )
+        from django.contrib.auth import authenticate
+
+        user_data = {"nickname": new_user.nickname, "password": new_user.password}
+        auth_service = AuthenticationService(user_data)
+
+        try:
+            refresh_token, access_token = auth_service.generate_tokens(new_user)
+
+            response = Response({
+                "access_token": access_token,
+                "user": {
+                    "username": new_user.username,
+                    "nickname": new_user.nickname,
+                    "pk": new_user.pk,
+                    "email": new_user.email
+                }
+            })
+
+            set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
+            return response
+
+        except:
+            return Response({'errors': {'error': "Permissions denied."}}, status=status.HTTP_401_UNAUTHORIZED)
