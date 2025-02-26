@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from django.db.models import Count
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate
@@ -12,7 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from authify.models import Clerbie
-
+from chat.models import ChatRoom
 
 class RegistrationService:
 
@@ -239,3 +240,24 @@ def check_current_password(user, current_password):
     """Ensure the current password matches the user's password."""
     if not user.check_password(current_password):
         raise ValidationError({"current_password": "Current password is incorrect."})
+
+
+def receive_user_data_delete_chats(user, password):
+
+    '''Return user's data | Delete all single chat with this user.'''
+
+    username = user.username
+    nickname = user.nickname
+    email = user.email
+    role = user.role
+    user_id = user.id
+
+    chat_rooms_to_delete = ChatRoom.objects.filter(users=user).annotate(user_count=Count('users')).filter(user_count=2)
+    chat_rooms_to_delete.delete()
+
+    user.nickname = 'deleted'
+    user.email = 'deleted@gmail.com'
+    user.save()
+    user.delete()
+
+    return username, nickname, email, password, role, user_id

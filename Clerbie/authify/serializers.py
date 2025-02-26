@@ -297,6 +297,20 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Clerbie
         fields = '__all__'
 
+class ResetAccountSerializer(serializers.ModelSerializer):
+
+
+    '''Deletes user from request'''
+
+    class Meta:
+        model = Clerbie
+        fields = ['password']
+
+    def validate(self, attrs):
+
+        validate_password_strength(attrs['password'])
+        check_current_password(self.context['request'].user,attrs['password'])
+        return attrs
 
 # TODO: BindEmail system
 

@@ -13,10 +13,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 
 from authify.serializers import (
+    AccountSerializer,
     GetUserDataSerializer,
     RegistrationSerializer,
+    ResetAccountSerializer,
     AuthorizationSerializer,
-    AccountSerializer,
     LogoutResponseSerializer,
     ChangePasswordSerializer,
     PasswordRecoverySerializer,
@@ -29,8 +30,9 @@ from authify.utils import (
     AuthenticationService,
     set_tokens_in_cookies,
     PasswordRecoveryService,
-    RegistrationConfirmationService,
     RequestPasswordRecoveryService,
+    receive_user_data_delete_chats,
+    RegistrationConfirmationService,
 )
 from authify.models import Clerbie
 
@@ -411,7 +413,7 @@ class ResetAccount(generics.UpdateAPIView):
     queryset = Clerbie.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
-    serializer_class = AccountSerializer
+    serializer_class = ResetAccountSerializer
     http_method_names = ['put']
 
     def get_object(self):
@@ -419,45 +421,37 @@ class ResetAccount(generics.UpdateAPIView):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        user = self.get_object()
+        
+        serializer = self.get_serializer(data=request.data)
 
-        # Store the user information that you want to keep intact
-        username = user.username
-        nickname = user.nickname
-        email = user.email
-        password = user.password
-        role = user.role
-        user_id = user.id
+        if serializer.is_valid():
+            user = self.get_object()
 
-        # Temporarily change the nickname to avoid unique constraint violation
-        user.nickname = 'deleted'
-        user.email = 'deleted@gmail.com'
-        user.save()
-        user.delete()
+            username, nickname, email, password, role, user_id = receive_user_data_delete_chats(user, serializer.validated_data.get('password', None))
+            new_user = Clerbie.objects.create_user(
+                id=user_id, username=username, nickname=nickname, email=email, password=password, role=role
+            )
 
-        new_user = Clerbie.objects.create_user(
-            id=user_id, username=username, nickname=nickname, email=email, password=password, role=role
-        )
-        from django.contrib.auth import authenticate
+            user_data = {"nickname": new_user.nickname, "password": new_user.password}
+            auth_service = AuthenticationService(user_data)
 
-        user_data = {"nickname": new_user.nickname, "password": new_user.password}
-        auth_service = AuthenticationService(user_data)
+            try:
+                refresh_token, access_token = auth_service.generate_tokens(new_user)
 
-        try:
-            refresh_token, access_token = auth_service.generate_tokens(new_user)
+                response = Response({
+                    "access_token": access_token,
+                    "user": {
+                        "username": new_user.username,
+                        "nickname": new_user.nickname,
+                        "pk": new_user.pk,
+                        "email": new_user.email
+                    }
+                })
+                set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
 
-            response = Response({
-                "access_token": access_token,
-                "user": {
-                    "username": new_user.username,
-                    "nickname": new_user.nickname,
-                    "pk": new_user.pk,
-                    "email": new_user.email
-                }
-            })
+                return response
 
-            set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
-            return response
+            except:
+                return Response({'errors': {'error': "Permissions denied."}}, status=status.HTTP_401_UNAUTHORIZED)
 
-        except:
-            return Response({'errors': {'error': "Permissions denied."}}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': serializer.errors}, status=status.HTTP_401_UNAUTHORIZED)
