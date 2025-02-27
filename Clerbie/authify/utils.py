@@ -241,23 +241,54 @@ def check_current_password(user, current_password):
     if not user.check_password(current_password):
         raise ValidationError({"current_password": "Current password is incorrect."})
 
-
-def receive_user_data_delete_chats(user, password):
-
-    '''Return user's data | Delete all single chat with this user.'''
-
-    username = user.username
-    nickname = user.nickname
-    email = user.email
-    role = user.role
-    user_id = user.id
+def delete_relation_single_chat(user):
 
     chat_rooms_to_delete = ChatRoom.objects.filter(users=user).annotate(user_count=Count('users')).filter(user_count=2)
     chat_rooms_to_delete.delete()
 
+
+def receive_user_data_delete_chats(user, password):
+
+    '''Stage 1: Delete user | Return user's data | Delete all single chat with this user.'''
+
+    username, nickname, email, role, user_id = user.username, user.nickname, user.email, user.role, user.id
+    delete_relation_single_chat(user=user)
     user.nickname = 'deleted'
     user.email = 'deleted@gmail.com'
+
     user.save()
     user.delete()
 
     return username, nickname, email, password, role, user_id
+
+
+def get_reset_response(auth_service, new_user):
+
+    refresh_token, access_token = auth_service.generate_tokens(new_user)
+
+    response = Response({
+        "access_token": access_token,
+        "user": {
+            "username": new_user.username,
+            "nickname": new_user.nickname,
+            "pk": new_user.pk,
+            "email": new_user.email
+        }
+    })
+    set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
+
+    return response
+
+
+def create_reset_user(user,validated_password):
+
+    '''Stage 2: Create new user | Return user's data'''
+
+    username, nickname, email, password, role, user_id = receive_user_data_delete_chats(user, validated_password)
+    new_user = Clerbie.objects.create_user(
+        id=user_id, username=username, nickname=nickname, email=email, password=password, role=role
+    )
+    user_data = {"nickname": new_user.nickname, "password": new_user.password}
+    auth_service = AuthenticationService(user_data)
+
+    return auth_service, new_user

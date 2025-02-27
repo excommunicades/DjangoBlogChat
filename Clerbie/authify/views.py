@@ -26,12 +26,14 @@ from authify.serializers import (
     )
 from authify.utils import (
     RegisterUserUtil,
+    get_reset_response,
+    create_reset_user,
     get_user_by_request,
     AuthenticationService,
     set_tokens_in_cookies,
     PasswordRecoveryService,
+    delete_relation_single_chat,
     RequestPasswordRecoveryService,
-    receive_user_data_delete_chats,
     RegistrationConfirmationService,
 )
 from authify.models import Clerbie
@@ -364,6 +366,7 @@ class GetUserData(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=['Account'])
 class DeleteAccount(generics.DestroyAPIView):
 
     """
@@ -382,6 +385,7 @@ class DeleteAccount(generics.DestroyAPIView):
         """
         Perform the deletion.
         """
+        delete_relation_single_chat(instance)
         instance.delete()
 
     def delete(self, request, *args, **kwargs):
@@ -399,11 +403,7 @@ class DeleteAccount(generics.DestroyAPIView):
                         samesite='Strict')
         
         return response
-
-class FreezeAccount(generics.UpdateAPIView):
-    # TODO: Implement Freeze functionallity
-    pass
-
+@extend_schema(tags=['Account'])
 class ResetAccount(generics.UpdateAPIView):
     """
     API endpoint for deleting the user and recreating the account with the same email, 
@@ -427,30 +427,10 @@ class ResetAccount(generics.UpdateAPIView):
         if serializer.is_valid():
             user = self.get_object()
 
-            username, nickname, email, password, role, user_id = receive_user_data_delete_chats(user, serializer.validated_data.get('password', None))
-            new_user = Clerbie.objects.create_user(
-                id=user_id, username=username, nickname=nickname, email=email, password=password, role=role
-            )
-
-            user_data = {"nickname": new_user.nickname, "password": new_user.password}
-            auth_service = AuthenticationService(user_data)
-
+            auth_service, new_user = create_reset_user(user, serializer.validated_data.get('password', None))
             try:
-                refresh_token, access_token = auth_service.generate_tokens(new_user)
-
-                response = Response({
-                    "access_token": access_token,
-                    "user": {
-                        "username": new_user.username,
-                        "nickname": new_user.nickname,
-                        "pk": new_user.pk,
-                        "email": new_user.email
-                    }
-                })
-                set_tokens_in_cookies(response=response, refresh_token=str(refresh_token))
-
+                response = get_reset_response(auth_service, new_user)
                 return response
-
             except:
                 return Response({'errors': {'error': "Permissions denied."}}, status=status.HTTP_401_UNAUTHORIZED)
 

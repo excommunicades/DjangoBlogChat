@@ -615,15 +615,6 @@ class CreateProfileReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"error": "Profile does not exist."})
 
         validated_data['user'] = user
-        validated_data['profile'] = profile
-
-        match validated_data['reaction']:
-            case 'like':
-                user = Clerbie.objects.get(id=profile.id)
-                user.behavior_points += 5
-            case 'dislike':
-                user = Clerbie.objects.get(id=profile.id)
-                user.behavior_points -= 5
         
         user.save()
 

@@ -351,14 +351,6 @@ class DeleteProfileReview(generics.DestroyAPIView):
         profile = get_object_or_404(Clerbie, id=self.kwargs['profile_id'])
 
         if user == instance.user: #  or user == profile - владелец тоже может удалять
-            match instance.reaction:
-                case 'like':
-                    profile_user = Clerbie.objects.get(id=profile.id)
-                    profile_user.behavior_points -= 5
-                case 'dislike':
-                    profile_user = Clerbie.objects.get(id=profile.id)
-                    profile_user.behavior_points += 5
-            profile_user.save()
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this review.")
