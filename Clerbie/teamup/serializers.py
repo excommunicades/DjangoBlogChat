@@ -157,6 +157,7 @@ class GetAnnouncementListSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = [
             'id',
+            'owner',
             'title',
             'description',
             'job_titles',
@@ -171,6 +172,7 @@ class GetAnnouncementListSerializer(serializers.ModelSerializer):
 
         representation = {
             'id': instance.id,
+            'owner': instance.owner.id,
             'title': instance.title,
             'description': instance.description,
             'project': instance.project.id,
@@ -195,6 +197,7 @@ class GetAnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = [
             'id',
+            'owner',
             'title',
             'description',
             'job_titles',
@@ -209,6 +212,7 @@ class GetAnnouncementSerializer(serializers.ModelSerializer):
 
         representation = {
             'id': instance.id,
+            'owner': instance.owner.id,
             'title': instance.title,
             'description': instance.description,
             'project': {

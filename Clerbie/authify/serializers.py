@@ -12,9 +12,10 @@ from authify.choices import USER_ROLE_CHOICES
 from authify.choices import ACCOUNT_STATUS_CHOICES
 
 from authify.utils import (
-    validate_password_strength,
-    validate_passwords_match, 
+    check_password,
     check_current_password,
+    validate_passwords_match, 
+    validate_password_strength,
 )
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -309,7 +310,7 @@ class ResetAccountSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
 
         validate_password_strength(attrs['password'])
-        check_current_password(self.context['request'].user,attrs['password'])
+        check_password(self.context['request'].user,attrs['password'])
         return attrs
 
 # TODO: BindEmail system

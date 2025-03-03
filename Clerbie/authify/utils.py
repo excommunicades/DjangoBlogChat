@@ -241,6 +241,11 @@ def check_current_password(user, current_password):
     if not user.check_password(current_password):
         raise ValidationError({"current_password": "Current password is incorrect."})
 
+def check_password(user, current_password):
+    """Ensure the current password matches the user's password."""
+    if not user.check_password(current_password):
+        raise ValidationError({"password": "Current password is incorrect."})
+
 def delete_relation_single_chat(user):
 
     chat_rooms_to_delete = ChatRoom.objects.filter(users=user).annotate(user_count=Count('users')).filter(user_count=2)
