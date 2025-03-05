@@ -74,7 +74,7 @@ class GetProfile(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         
-        request_user = self.kwargs.get('user')
+        request_user = self.kwargs.get('user_id')
         if request_user:
             user = get_user_by_request(request_user=request_user)
         else:

@@ -43,7 +43,7 @@ urlpatterns = [
 
     # Profile data
     path('', GetProfile.as_view(), name='get-mine-data'),
-    path('<int:user>', GetProfile.as_view(), name='get-user-data'),
+    path('<int:user_id>', GetProfile.as_view(), name='get-user-data'),
 
     # Update profile data
     path('general/update', UpdateUserGeneralData.as_view(), name='update-general-data'),
