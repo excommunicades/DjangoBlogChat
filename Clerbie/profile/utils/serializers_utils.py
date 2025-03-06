@@ -74,7 +74,7 @@ class ClerbieSerializer(serializers.ModelSerializer):
     job_title = JobTitlesSerializer()
     class Meta:
         model = Clerbie
-        fields = ['id', 'nickname', 'avatar', 'job_title'] # 'email'
+        fields = ['id', 'username', 'nickname', 'avatar', 'job_title'] # 'email'
 
 class ReactionSerializer(serializers.ModelSerializer):
 
@@ -82,7 +82,7 @@ class ReactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Clerbie_reviews
-        fields = ['user', 'reaction', 'review']
+        fields = ['id', 'user', 'reaction', 'review']
 
 class TechnologiesSerializer(serializers.ModelSerializer):
 

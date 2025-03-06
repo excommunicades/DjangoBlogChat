@@ -94,4 +94,3 @@ class BlockUserListView(generics.ListAPIView):
         
         queryset = BlackList.objects.filter(user=self.request.user)
         return queryset
-    

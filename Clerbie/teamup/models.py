@@ -9,6 +9,7 @@ from profile.models import (
     JobTitles,
 )
 
+
 class Announcement(models.Model):
 
     owner = models.ForeignKey(Clerbie, on_delete=models.CASCADE, blank=False, null=False)
@@ -22,3 +23,16 @@ class Announcement(models.Model):
 
     class Meta:
         db_table = 'Announcement'
+
+
+class AnnouncementRequests(models.Model):
+
+    employee = models.ForeignKey(Clerbie, on_delete=models.CASCADE, blank=False, null=False)
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE, blank=False, null=False)
+    job_title = models.CharField(default='employee', blank=False, null=False)
+    cover_list = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'AnnouncementRequests'

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from teamup.models import Announcement
+from teamup.models import Announcement, AnnouncementRequests
 from profile.models import Projects, JobTitles, Technologies
 from profile.utils.serializers_utils import ClerbieSerializer
 
@@ -233,3 +233,86 @@ class GetAnnouncementSerializer(serializers.ModelSerializer):
         representation['job_titles'] = [job_title.title for job_title in job_titles] if job_titles else []
 
         return representation
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Announcement
+        fields = '__all__'
+class GetAnnouncementRequestsListSerializer(serializers.ModelSerializer):
+
+    employee = ClerbieSerializer()
+    announcement = AnnouncementSerializer()
+    class Meta:
+        model=AnnouncementRequests
+        fields = [
+            'id',
+            'job_title',
+            'cover_list',
+            'created_at',
+            'employee',
+            'announcement'
+        ]
+
+class ApplyAnnouncementSerializer(serializers.ModelSerializer):
+
+    job_title = serializers.PrimaryKeyRelatedField(queryset=JobTitles.objects.none(), required=True)
+
+    class Meta:
+        model = AnnouncementRequests
+        fields = [
+            'id',
+            'employee',
+            'announcement',
+            'job_title',
+            'cover_list',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'employee', 'announcement', 'created_at']
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        announcement = self.context.get('announcement')
+
+        if announcement:
+            self.fields['job_title'].queryset = announcement.job_titles.all()
+
+        if AnnouncementRequests.objects.filter(announcement=announcement.id, employee=self.context.get('request').user).exists():
+            raise serializers.ValidationError({'job_title':"You can apply only once to one announcement."})
+
+    def validate_job_title(self, value):
+
+        """
+        We check that the selected role exists in relation to the job_titles of this ad.
+        If not, we throw an error.
+        """
+
+        announcement = self.context.get('announcement')
+        if announcement and value not in announcement.job_titles.all():
+            raise ValidationError({'job_title':"Selected job title does not exist."})
+
+        return value.title
+
+
+    def create(self, validated_data):
+
+        announcement = self.context.get('announcement')
+        validated_data['announcement'] = announcement
+        user = self.context.get('request').user
+        validated_data['employee'] = user
+
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+
+        representation = super().to_representation(instance)
+        announcement = instance.announcement
+        representation['announcement'] = {
+            'id': announcement.id,
+            'owner': announcement.owner.id,
+            'title': announcement.title,
+            'project_id': announcement.project.id,
+        }
+
+        return representation
+
