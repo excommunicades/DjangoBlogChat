@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from teamup.models import Announcement, AnnouncementRequests
-from profile.models import Projects, JobTitles, Technologies
+from profile.models import Projects, JobTitles, Technologies, Companies, University
 from profile.utils.serializers_utils import ClerbieSerializer
 
 class CreateAnnouncementSerializer(serializers.ModelSerializer):
@@ -316,3 +316,16 @@ class ApplyAnnouncementSerializer(serializers.ModelSerializer):
 
         return representation
 
+
+class GetCompaniesListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Companies
+        fields = '__all__'
+
+
+class GetUniversitiesListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = University
+        fields = '__all__'

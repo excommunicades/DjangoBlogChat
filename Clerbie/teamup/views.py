@@ -10,14 +10,17 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.shortcuts import get_object_or_404
 
+from profile.models import University, Companies
 from teamup.models import Announcement, AnnouncementRequests
 from teamup.filters import AnnouncementFilter
 from teamup.serializers import (
     GetAnnouncementSerializer,
+    GetCompaniesListSerializer,
     ApplyAnnouncementSerializer,
     CreateAnnouncementSerializer,
     UpdateAnnouncementSerializer,
     GetAnnouncementListSerializer,
+    GetUniversitiesListSerializer,
     GetAnnouncementRequestsListSerializer,
 )
 from profile.utils.views_utils import send_offer_to_receiver
@@ -139,3 +142,21 @@ class GetAnnouncementRequestsList(generics.ListAPIView):
     def get_queryset(self):
 
         return AnnouncementRequests.objects.filter(announcement__in=Announcement.objects.filter(owner=self.request.user))
+
+
+# GetCompaniesList, GetUniversitiesList
+
+class GetCompaniesList(generics.ListAPIView):
+
+    queryset = Companies.objects.all()
+    serializer_class = GetCompaniesListSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+class GetUniversitiesList(generics.ListAPIView):
+
+    queryset = University.objects.all()
+    serializer_class = GetUniversitiesListSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
