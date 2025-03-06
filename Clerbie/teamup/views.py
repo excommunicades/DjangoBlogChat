@@ -150,13 +150,9 @@ class GetCompaniesList(generics.ListAPIView):
 
     queryset = Companies.objects.all()
     serializer_class = GetCompaniesListSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
 
 class GetUniversitiesList(generics.ListAPIView):
 
     queryset = University.objects.all()
     serializer_class = GetUniversitiesListSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
